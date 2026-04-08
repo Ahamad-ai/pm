@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PM MVP Backend Scaffold</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        color: #032147;
+      }
+
+      h1 {
+        margin-bottom: 0.5rem;
+      }
+
+      #api-result {
+        margin-top: 1rem;
+        font-weight: 700;
+        color: #209dd7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hello from the Project Management MVP scaffold</h1>
+    <p>This static page is served by FastAPI. It also calls the API below.</p>
+    <button id="call-api" type="button">Call /api/hello</button>
+    <p id="api-result" aria-live="polite">Waiting for API call...</p>
+
+    <script>
+      const apiResult = document.getElementById("api-result");
+      const callApiButton = document.getElementById("call-api");
+
+      async function callHelloApi() {
+        apiResult.textContent = "Calling API...";
+        try {
+          const response = await fetch("/api/hello");
+          if (!response.ok) {
+            throw new Error(`API request failed with ${response.status}`);
+          }
+
+          const data = await response.json();
+          apiResult.textContent = `API says: ${data.message}`;
+        } catch (error) {
+          apiResult.textContent = `API error: ${error.message}`;
+        }
+      }
+
+      callApiButton.addEventListener("click", callHelloApi);
+    </script>
+  </body>
+</html>
