@@ -21,8 +21,4 @@ def get_or_create_board_for_user(
 def save_board_for_user(
     username: str, board: dict[str, Any], db_path: Path | str = DEFAULT_DB_PATH
 ) -> dict[str, Any]:
-    upsert_board_for_user(username, board, db_path)
-    stored = get_board_for_user(username, db_path)
-    if stored is None:
-        raise RuntimeError("board save failed unexpectedly")
-    return stored
+    return upsert_board_for_user(username, board, db_path)

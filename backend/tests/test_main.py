@@ -8,7 +8,7 @@ from backend.app.main import create_app
 
 def test_health_endpoint(tmp_path: Path) -> None:
     (tmp_path / "index.html").write_text("<h1>Kanban Studio</h1>")
-    client = TestClient(create_app(static_dir=tmp_path))
+    client = TestClient(create_app(static_dir=tmp_path, db_path=tmp_path / "pm.sqlite3"))
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

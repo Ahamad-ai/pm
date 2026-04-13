@@ -9,7 +9,7 @@ def build_client(tmp_path: Path) -> TestClient:
     static_dir = tmp_path / "static"
     static_dir.mkdir(parents=True, exist_ok=True)
     (static_dir / "index.html").write_text("<html>ok</html>")
-    return TestClient(create_app(static_dir=static_dir, db_path=tmp_path / "pm.sqlite3"))
+    return TestClient(create_app(static_dir=static_dir, db_path=tmp_path / "pm.sqlite3", enable_rate_limit=False))
 
 
 def test_chat_rejects_empty_message(tmp_path: Path) -> None:
@@ -58,7 +58,7 @@ def test_chat_persists_ai_board_update(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     monkeypatch.setattr(
-        "backend.app.main.request_structured_chat",
+        "backend.app.routes.chat.request_structured_chat",
         fake_structured_chat,
     )
     client = build_client(tmp_path)
@@ -86,7 +86,7 @@ def test_chat_rejects_invalid_structured_output(tmp_path: Path, monkeypatch) -> 
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     monkeypatch.setattr(
-        "backend.app.main.request_structured_chat",
+        "backend.app.routes.chat.request_structured_chat",
         invalid_structured_chat,
     )
     client = build_client(tmp_path)
@@ -96,8 +96,8 @@ def test_chat_rejects_invalid_structured_output(tmp_path: Path, monkeypatch) -> 
         headers={"X-Username": "user"},
     )
     assert response.status_code == 502
-    assert response.json()["detail"] == (
-        "OpenRouter response did not match required structured output."
+    assert response.json()["detail"].startswith(
+        "OpenRouter response did not match required structured output:"
     )
 
 
@@ -125,7 +125,7 @@ def test_chat_repairs_missing_cards_from_current_board(tmp_path: Path, monkeypat
         }
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
-    monkeypatch.setattr("backend.app.main.request_structured_chat", ai_missing_cards)
+    monkeypatch.setattr("backend.app.routes.chat.request_structured_chat", ai_missing_cards)
     client = build_client(tmp_path)
 
     response = client.post(
@@ -157,7 +157,7 @@ def test_chat_drops_unknown_card_references(tmp_path: Path, monkeypatch) -> None
         }
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
-    monkeypatch.setattr("backend.app.main.request_structured_chat", ai_dangling_reference)
+    monkeypatch.setattr("backend.app.routes.chat.request_structured_chat", ai_dangling_reference)
     client = build_client(tmp_path)
     response = client.post(
         "/api/chat",
@@ -192,7 +192,7 @@ def test_chat_preserves_unspecified_columns(tmp_path: Path, monkeypatch) -> None
         }
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
-    monkeypatch.setattr("backend.app.main.request_structured_chat", ai_partial_board_update)
+    monkeypatch.setattr("backend.app.routes.chat.request_structured_chat", ai_partial_board_update)
     client = build_client(tmp_path)
 
     response = client.post(

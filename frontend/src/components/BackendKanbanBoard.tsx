@@ -61,17 +61,22 @@ export const BackendKanbanBoard = () => {
   };
 
   const handleSendChat = async (message: string) => {
-    const conversationHistory = [...chatMessages];
-    setChatMessages((prev) => [...prev, { role: "user", content: message }]);
+    const updatedHistory: ChatHistoryMessage[] = [
+      ...chatMessages,
+      { role: "user", content: message },
+    ];
+    setChatMessages(updatedHistory);
     setChatError(null);
     setIsChatting(true);
     try {
-      const response = await sendChat(DEMO_USERNAME, message, conversationHistory);
+      const response = await sendChat(DEMO_USERNAME, message, updatedHistory);
       setChatMessages((prev) => [
         ...prev,
         { role: "assistant", content: response.assistant_message },
       ]);
-      setBoard(response.board);
+      if (response.board) {
+        setBoard(response.board);
+      }
     } catch (error) {
       if (error instanceof Error && error.message) {
         setChatError(error.message);

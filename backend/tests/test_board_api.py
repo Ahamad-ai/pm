@@ -14,7 +14,7 @@ def build_client(tmp_path: Path) -> TestClient:
     static_dir = tmp_path / "static"
     static_dir.mkdir(parents=True, exist_ok=True)
     (static_dir / "index.html").write_text("<html>ok</html>")
-    return TestClient(create_app(static_dir=static_dir, db_path=tmp_path / "pm.sqlite3"))
+    return TestClient(create_app(static_dir=static_dir, db_path=tmp_path / "pm.sqlite3", enable_rate_limit=False))
 
 
 def test_get_board_requires_user_header(tmp_path: Path) -> None:

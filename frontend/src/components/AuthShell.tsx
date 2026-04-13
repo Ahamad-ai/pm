@@ -2,7 +2,14 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { BackendKanbanBoard } from "@/components/BackendKanbanBoard";
-import { AUTH_STORAGE_KEY, DEMO_PASSWORD, DEMO_USERNAME } from "@/lib/auth";
+import {
+  AUTH_STORAGE_KEY,
+  DEMO_PASSWORD,
+  DEMO_USERNAME,
+  TOKEN_STORAGE_KEY,
+  login,
+  clearToken,
+} from "@/lib/auth";
 
 export const AuthShell = () => {
   const [username, setUsername] = useState("");
@@ -10,32 +17,50 @@ export const AuthShell = () => {
   const [error, setError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     setIsAuthenticated(localStorage.getItem(AUTH_STORAGE_KEY) === "true");
     setIsReady(true);
   }, []);
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedUsername = username.trim();
     const normalizedPassword = password.trim();
-    const isValid =
-      normalizedUsername === DEMO_USERNAME && normalizedPassword === DEMO_PASSWORD;
-    if (!isValid) {
+
+    // Client-side quick check before hitting the API
+    if (
+      normalizedUsername !== DEMO_USERNAME ||
+      normalizedPassword !== DEMO_PASSWORD
+    ) {
       setError("Invalid credentials. Use user / password.");
       return;
     }
 
-    localStorage.setItem(AUTH_STORAGE_KEY, "true");
-    setIsAuthenticated(true);
-    setUsername("");
-    setPassword("");
+    setIsLoggingIn(true);
     setError("");
+    try {
+      const token = await login(normalizedUsername, normalizedPassword);
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(AUTH_STORAGE_KEY, "true");
+      setIsAuthenticated(true);
+      setUsername("");
+      setPassword("");
+    } catch {
+      // Backend unavailable -- fall back to client-only auth
+      localStorage.setItem(AUTH_STORAGE_KEY, "true");
+      setIsAuthenticated(true);
+      setUsername("");
+      setPassword("");
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    clearToken();
     setIsAuthenticated(false);
     setUsername("");
     setPassword("");
@@ -94,9 +119,10 @@ export const AuthShell = () => {
             ) : null}
             <button
               type="submit"
-              className="w-full rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:brightness-110"
+              disabled={isLoggingIn}
+              className="w-full rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:brightness-110 disabled:opacity-60"
             >
-              Sign in
+              {isLoggingIn ? "Signing in..." : "Sign in"}
             </button>
           </form>
         </section>

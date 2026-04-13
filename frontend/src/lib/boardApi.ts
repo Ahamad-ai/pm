@@ -1,4 +1,5 @@
 import type { BoardData } from "@/lib/kanban";
+import { getToken } from "@/lib/auth";
 
 type BoardResponse = {
   username: string;
@@ -16,10 +17,18 @@ export type ChatResponse = {
   board: BoardData;
 };
 
-const buildHeaders = (username: string) => ({
-  "Content-Type": "application/json",
-  "X-Username": username,
-});
+const buildHeaders = (username: string): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    headers["X-Username"] = username;
+  }
+  return headers;
+};
 
 export const fetchBoard = async (username: string): Promise<BoardData> => {
   const response = await fetch("/api/board", {

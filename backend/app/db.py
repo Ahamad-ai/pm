@@ -1,3 +1,4 @@
+import html
 import json
 import sqlite3
 from pathlib import Path
@@ -5,6 +6,14 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "pm.sqlite3"
+
+MAX_COLUMN_TITLE_LEN = 100
+MAX_CARD_TITLE_LEN = 200
+MAX_CARD_DETAILS_LEN = 2000
+
+
+def _sanitize_string(value: str, max_length: int) -> str:
+    return html.escape(value[:max_length])
 
 
 def get_connection(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
@@ -68,6 +77,7 @@ def _validate_board_data(board: Any) -> dict[str, Any]:
     if not isinstance(cards, dict):
         raise ValueError("board.cards must be an object")
 
+    sanitized_columns = []
     for column in columns:
         if not isinstance(column, dict):
             raise ValueError("column must be an object")
@@ -83,7 +93,12 @@ def _validate_board_data(board: Any) -> dict[str, Any]:
         for card_id in card_ids:
             if card_id not in cards:
                 raise ValueError(f"column references missing card id: {card_id}")
+        sanitized_columns.append({
+            **column,
+            "title": _sanitize_string(column["title"], MAX_COLUMN_TITLE_LEN),
+        })
 
+    sanitized_cards: dict[str, Any] = {}
     for card_id, card in cards.items():
         if not isinstance(card_id, str):
             raise ValueError("card id must be a string")
@@ -95,17 +110,23 @@ def _validate_board_data(board: Any) -> dict[str, Any]:
             raise ValueError("card.title must be a string")
         if not isinstance(card.get("details"), str):
             raise ValueError("card.details must be a string")
+        sanitized_cards[card_id] = {
+            **card,
+            "title": _sanitize_string(card["title"], MAX_CARD_TITLE_LEN),
+            "details": _sanitize_string(card["details"], MAX_CARD_DETAILS_LEN),
+        }
 
-    return {"columns": columns, "cards": cards}
+    return {"columns": sanitized_columns, "cards": sanitized_cards}
 
 
 def upsert_board_for_user(
     username: str, board: dict[str, Any], db_path: Path | str = DEFAULT_DB_PATH
-) -> None:
+) -> dict[str, Any]:
     validated_board = _validate_board_data(board)
     initialize_db(db_path)
 
     with get_connection(db_path) as connection:
+        connection.execute("BEGIN IMMEDIATE")
         user_id = _ensure_user(connection, username)
         payload = json.dumps(validated_board, separators=(",", ":"))
         connection.execute(
@@ -119,6 +140,7 @@ def upsert_board_for_user(
             (user_id, payload),
         )
         connection.commit()
+    return validated_board
 
 
 def get_board_for_user(
@@ -139,7 +161,7 @@ def get_board_for_user(
             return None
 
         try:
-            parsed = json.loads(str(row["board_json"]))
+            parsed = json.loads(row["board_json"])
         except json.JSONDecodeError as exc:
             raise ValueError("stored board_json is invalid JSON") from exc
         return _validate_board_data(parsed)

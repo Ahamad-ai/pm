@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Markdown from "react-markdown";
 import type { ChatHistoryMessage } from "@/lib/boardApi";
 
 type ChatSidebarProps = {
@@ -59,10 +60,14 @@ export const ChatSidebar = ({
             className={
               message.role === "user"
                 ? "ml-8 rounded-2xl bg-[var(--primary-blue)] px-3 py-2 text-sm text-white"
-                : "mr-8 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--navy-dark)]"
+                : "chat-markdown mr-8 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--navy-dark)]"
             }
           >
-            {message.content}
+            {message.role === "assistant" ? (
+              <Markdown>{message.content}</Markdown>
+            ) : (
+              message.content
+            )}
           </div>
         ))}
       </div>

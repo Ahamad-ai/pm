@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -11,6 +12,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import { createId, initialData, moveCard, type BoardData } from "@/lib/kanban";
@@ -23,11 +25,15 @@ type KanbanBoardProps = {
 export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoardProps) => {
   const [internalBoard, setInternalBoard] = useState<BoardData>(() => initialData);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [dragAnnouncement, setDragAnnouncement] = useState("");
   const board = controlledBoard ?? internalBoard;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 6 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -46,7 +52,12 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveCardId(event.active.id as string);
+    const id = String(event.active.id);
+    setActiveCardId(id);
+    const card = board.cards[id];
+    if (card) {
+      setDragAnnouncement(`Picked up card: ${card.title}`);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -54,13 +65,17 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
     setActiveCardId(null);
 
     if (!over || active.id === over.id) {
+      setDragAnnouncement("Card dropped in original position.");
       return;
     }
 
+    const activeId = String(active.id);
+    const overId = String(over.id);
     setBoard((prev) => ({
       ...prev,
-      columns: moveCard(prev.columns, active.id as string, over.id as string),
+      columns: moveCard(prev.columns, activeId, overId),
     }));
+    setDragAnnouncement("Card moved.");
   };
 
   const handleRenameColumn = (columnId: string, title: string) => {
@@ -125,6 +140,9 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
 
   return (
     <div className="relative overflow-hidden">
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {dragAnnouncement}
+      </div>
       <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,_rgba(32,157,215,0.25)_0%,_rgba(32,157,215,0.05)_55%,_transparent_70%)]" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-[520px] w-[520px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,_rgba(117,57,145,0.18)_0%,_rgba(117,57,145,0.05)_55%,_transparent_75%)]" />
 
