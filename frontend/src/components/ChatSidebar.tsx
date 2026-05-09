@@ -16,6 +16,8 @@ type ChatSidebarProps = {
   messages: ChatHistoryMessage[];
   isSending: boolean;
   error: string | null;
+  isOpen?: boolean;
+  onToggle?: () => void;
   onSend: (message: string) => Promise<void>;
 };
 
@@ -29,6 +31,8 @@ export const ChatSidebar = ({
   messages,
   isSending,
   error,
+  isOpen = true,
+  onToggle,
   onSend,
 }: ChatSidebarProps) => {
   const [draft, setDraft] = useState("");
@@ -65,25 +69,58 @@ export const ChatSidebar = ({
     }
   };
 
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full border border-[var(--stroke)] bg-white px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--navy-dark)] shadow-[var(--shadow)] transition hover:border-[var(--secondary-purple)] hover:text-[var(--secondary-purple)]"
+        aria-label="Open AI assistant"
+        data-testid="chat-open"
+      >
+        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+          <path d="M12 3a9 9 0 0 0-9 9c0 1.84.55 3.55 1.5 4.98L3 21l4.16-1.36A9 9 0 1 0 12 3zm-3.5 10a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
+        </svg>
+        AI Assistant
+      </button>
+    );
+  }
+
   return (
-    <aside className="fixed bottom-4 right-4 top-16 z-30 flex w-[360px] flex-col rounded-3xl border border-[var(--stroke)] bg-white/95 p-4 shadow-[var(--shadow)] backdrop-blur">
-      <div className="mb-3 flex items-start justify-between gap-3 border-b border-[var(--stroke)] pb-3">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--gray-text)]">
-            AI Assistant
-          </p>
-          <h2 className="mt-1 font-display text-lg font-semibold text-[var(--navy-dark)]">
-            Chat
-          </h2>
+    <aside
+      className="fixed bottom-4 right-4 top-16 z-30 flex w-[min(360px,calc(100vw-2rem))] flex-col rounded-3xl border border-[var(--stroke)] bg-white/95 p-4 shadow-[var(--shadow)] backdrop-blur"
+      data-testid="chat-sidebar"
+    >
+      <div className="mb-3 flex items-center justify-between gap-2 border-b border-[var(--stroke)] pb-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-purple)]/10 text-[var(--secondary-purple)]"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+              <path d="M12 3a9 9 0 0 0-9 9c0 1.84.55 3.55 1.5 4.98L3 21l4.16-1.36A9 9 0 1 0 12 3zm-3.5 10a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--gray-text)]">
+              AI Assistant
+            </p>
+            <h2 className="font-display text-base font-semibold text-[var(--navy-dark)]">
+              Chat
+            </h2>
+          </div>
         </div>
-        <span
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--secondary-purple)]/10 text-[var(--secondary-purple)]"
-          aria-hidden="true"
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-            <path d="M12 3a9 9 0 0 0-9 9c0 1.84.55 3.55 1.5 4.98L3 21l4.16-1.36A9 9 0 1 0 12 3zm-3.5 10a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
-          </svg>
-        </span>
+        {onToggle ? (
+          <button
+            type="button"
+            onClick={onToggle}
+            className="shrink-0 rounded-full border border-[var(--stroke)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--gray-text)] transition hover:border-[var(--primary-blue)] hover:text-[var(--primary-blue)]"
+            aria-label="Collapse AI assistant"
+            data-testid="chat-collapse"
+          >
+            Hide
+          </button>
+        ) : null}
       </div>
 
       <div

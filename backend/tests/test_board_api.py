@@ -31,7 +31,7 @@ def test_get_board_seeds_default_for_new_user(tmp_path: Path) -> None:
     assert payload["username"] == "user"
     assert isinstance(payload["board"]["columns"], list)
     assert isinstance(payload["board"]["cards"], dict)
-    assert len(payload["board"]["columns"]) == 5
+    assert len(payload["board"]["columns"]) == 4
 
 
 def test_put_board_persists_for_user(tmp_path: Path) -> None:

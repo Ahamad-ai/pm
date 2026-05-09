@@ -18,10 +18,12 @@ echo "Removing existing container if present: ${CONTAINER_NAME}"
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
 echo "Starting container on http://localhost:${PORT}"
+DATA_DIR="$(pwd)/data"
+mkdir -p "${DATA_DIR}"
 if [[ -f "${ENV_FILE}" ]]; then
-  docker run -d --name "${CONTAINER_NAME}" --env-file "${ENV_FILE}" -p "${PORT}:8000" "${IMAGE_NAME}"
+  docker run -d --name "${CONTAINER_NAME}" --env-file "${ENV_FILE}" -v "${DATA_DIR}:/app/data" -p "${PORT}:8000" "${IMAGE_NAME}"
 else
-  docker run -d --name "${CONTAINER_NAME}" -p "${PORT}:8000" "${IMAGE_NAME}"
+  docker run -d --name "${CONTAINER_NAME}" -v "${DATA_DIR}:/app/data" -p "${PORT}:8000" "${IMAGE_NAME}"
 fi
 
 echo "Done. Open http://localhost:${PORT}"

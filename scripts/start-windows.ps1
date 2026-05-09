@@ -19,10 +19,15 @@ if ($Exists) {
 }
 
 Write-Host "Starting container on http://localhost:$Port"
+$DataDir = (Resolve-Path -Path "data" -ErrorAction SilentlyContinue)
+if (-not $DataDir) {
+  New-Item -ItemType Directory -Path "data" | Out-Null
+  $DataDir = (Resolve-Path -Path "data")
+}
 if (Test-Path $EnvFile) {
-  docker run -d --name $ContainerName --env-file $EnvFile -p "$Port`:8000" $ImageName | Out-Null
+  docker run -d --name $ContainerName --env-file $EnvFile -v "${DataDir}:/app/data" -p "$Port`:8000" $ImageName | Out-Null
 } else {
-  docker run -d --name $ContainerName -p "$Port`:8000" $ImageName | Out-Null
+  docker run -d --name $ContainerName -v "${DataDir}:/app/data" -p "$Port`:8000" $ImageName | Out-Null
 }
 
 Write-Host "Done. Open http://localhost:$Port"

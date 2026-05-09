@@ -10,7 +10,17 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from backend.app.config import resolve_db_path, resolve_static_dir
-from backend.app.routes import board, chat, health, login
+from backend.app.db import initialize_db
+from backend.app.routes import (
+    board,
+    boards,
+    chat,
+    health,
+    login,
+    search,
+    templates,
+    users,
+)
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -22,6 +32,7 @@ def create_app(
 ) -> FastAPI:
     resolved_static_dir = static_dir or resolve_static_dir()
     resolved_db_path = db_path or resolve_db_path()
+    initialize_db(resolved_db_path)
     app = FastAPI(title="Project Management MVP API")
 
     # --- Rate limiting ---
@@ -41,14 +52,18 @@ def create_app(
         CORSMiddleware,
         allow_origins=allowed_origins.split(",") if allowed_origins else [],
         allow_credentials=True,
-        allow_methods=["GET", "PUT", "POST"],
+        allow_methods=["GET", "PUT", "POST", "DELETE", "PATCH"],
         allow_headers=["Content-Type", "X-Username", "Authorization"],
     )
 
     # --- Routes ---
     app.include_router(health.create_router(resolved_db_path))
-    app.include_router(login.router)
+    app.include_router(login.create_router(resolved_db_path))
+    app.include_router(users.create_router(resolved_db_path))
     app.include_router(board.create_router(resolved_db_path))
+    app.include_router(boards.create_router(resolved_db_path))
+    app.include_router(templates.create_router(resolved_db_path))
+    app.include_router(search.create_router(resolved_db_path))
     app.include_router(chat.create_router(resolved_db_path, limiter, enable_rate_limit))
 
     # --- Static file serving ---

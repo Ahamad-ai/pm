@@ -1,9 +1,34 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
+import {
+  PRIORITY_LABEL,
+  PRIORITY_ORDER,
+  type CardPriority,
+} from "@/lib/kanban";
 
-const initialFormState = { title: "", details: "" };
+export type NewCardInput = {
+  title: string;
+  details: string;
+  priority?: CardPriority;
+  dueDate?: string;
+  labels?: string[];
+};
+
+const initialFormState: {
+  title: string;
+  details: string;
+  priority: CardPriority | "";
+  dueDate: string;
+  labels: string;
+} = {
+  title: "",
+  details: "",
+  priority: "",
+  dueDate: "",
+  labels: "",
+};
 
 type NewCardFormProps = {
-  onAdd: (title: string, details: string) => void;
+  onAdd: (input: NewCardInput) => void;
   accentColor?: string;
 };
 
@@ -16,7 +41,17 @@ export const NewCardForm = ({ onAdd, accentColor = "var(--primary-blue)" }: NewC
     if (!formState.title.trim()) {
       return;
     }
-    onAdd(formState.title.trim(), formState.details.trim());
+    const labels = formState.labels
+      .split(",")
+      .map((label) => label.trim())
+      .filter(Boolean);
+    onAdd({
+      title: formState.title.trim(),
+      details: formState.details.trim(),
+      priority: formState.priority || undefined,
+      dueDate: formState.dueDate || undefined,
+      labels: labels.length > 0 ? labels : undefined,
+    });
     setFormState(initialFormState);
     setIsOpen(false);
   };
@@ -46,8 +81,45 @@ export const NewCardForm = ({ onAdd, accentColor = "var(--primary-blue)" }: NewC
               setFormState((prev) => ({ ...prev, details: event.target.value }))
             }
             placeholder="Details"
-            rows={3}
+            rows={2}
             className="w-full resize-none rounded-xl border border-[var(--stroke)] bg-white px-3 py-2 text-sm text-[var(--gray-text)] outline-none transition focus:border-[var(--primary-blue)] focus:ring-2 focus:ring-[var(--primary-blue)]/20"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={formState.priority}
+              onChange={(event) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  priority: event.target.value as CardPriority | "",
+                }))
+              }
+              className="rounded-xl border border-[var(--stroke)] bg-white px-2 py-1.5 text-xs text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
+              aria-label="Priority"
+            >
+              <option value="">Priority…</option>
+              {PRIORITY_ORDER.map((value) => (
+                <option key={value} value={value}>
+                  {PRIORITY_LABEL[value]}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={formState.dueDate}
+              onChange={(event) =>
+                setFormState((prev) => ({ ...prev, dueDate: event.target.value }))
+              }
+              className="rounded-xl border border-[var(--stroke)] bg-white px-2 py-1.5 text-xs text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
+              aria-label="Due date"
+            />
+          </div>
+          <input
+            value={formState.labels}
+            onChange={(event) =>
+              setFormState((prev) => ({ ...prev, labels: event.target.value }))
+            }
+            placeholder="Labels (comma-separated)"
+            className="w-full rounded-xl border border-[var(--stroke)] bg-white px-3 py-1.5 text-xs text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
           />
           <div className="flex items-center gap-2">
             <button

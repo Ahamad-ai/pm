@@ -1,0 +1,312 @@
+- generic [ref=e1]:
+  - alert [ref=e37]
+  - banner [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e42]: K
+        - generic [ref=e43]:
+          - generic [ref=e44]: Kanban Studio
+          - generic [ref=e45]: / Demo User
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - button "My Board" [expanded] [active] [ref=e48]:
+            - generic [ref=e50]: My Board
+            - img [ref=e51]
+          - menu [ref=e392]:
+            - paragraph [ref=e393]: Your boards
+            - list [ref=e394]:
+              - listitem [ref=e395]:
+                - generic [ref=e396]:
+                  - button "✓ My Board" [ref=e397]
+                  - button "Pin My Board" [ref=e398]:
+                    - img [ref=e399]
+                  - button "Rename My Board" [ref=e401]:
+                    - img [ref=e402]
+                  - button "Delete My Board" [ref=e404]:
+                    - img [ref=e405]
+              - listitem [ref=e407]:
+                - generic [ref=e408]:
+                  - button "Board2" [ref=e409]
+                  - button "Pin Board2" [ref=e410]:
+                    - img [ref=e411]
+                  - button "Rename Board2" [ref=e413]:
+                    - img [ref=e414]
+                  - button "Delete Board2" [ref=e416]:
+                    - img [ref=e417]
+            - button "+ New board" [ref=e420]
+        - searchbox "Global search" [ref=e54]
+        - button "Share" [ref=e55]
+        - link "Export" [ref=e56] [cursor=pointer]:
+          - /url: /api/boards/1/export
+        - button "My Tasks" [ref=e57]
+        - button "Archive" [ref=e58]
+        - tablist "Board view" [ref=e59]:
+          - tab "Board" [selected] [ref=e60]
+          - tab "Calendar" [ref=e61]
+        - button "Activity" [ref=e62]
+        - button "Notifications" [ref=e64]:
+          - img [ref=e65]
+        - button "Keyboard shortcuts" [ref=e67]: "?"
+        - generic [ref=e68]: Saved
+        - button "Demo User" [ref=e71]
+  - generic [ref=e72]:
+    - region "Board statistics" [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]: Cards
+        - generic [ref=e77]: "7"
+      - generic [ref=e78]:
+        - generic [ref=e79]: Columns
+        - generic [ref=e80]: "4"
+      - generic [ref=e81]:
+        - generic [ref=e82]: Overdue
+        - generic [ref=e83]: "0"
+      - generic [ref=e84]:
+        - generic [ref=e85]: With due date
+        - generic [ref=e86]: "0"
+      - generic [ref=e87]:
+        - generic [ref=e88]: Subtasks
+        - generic [ref=e89]: 3/3
+      - generic [ref=e90]:
+        - generic [ref=e91]: Urgent · 1
+        - generic [ref=e93]: High · 1
+    - main [ref=e97]:
+      - generic [ref=e98]:
+        - paragraph [ref=e99]: Single Board Kanban
+        - heading "Kanban Studio" [level=1] [ref=e100]
+        - paragraph [ref=e101]: Drag cards across stages, capture quick notes, and lean on the AI assistant when you need a hand.
+      - region "Card filters" [ref=e102]:
+        - searchbox "Search cards" [ref=e103]
+        - generic [ref=e104]:
+          - button "Urgent" [ref=e105]
+          - button "High" [ref=e106]
+          - button "Medium" [ref=e107]
+          - button "Low" [ref=e108]
+        - generic [ref=e109]:
+          - checkbox "Overdue" [ref=e110]
+          - text: Overdue
+        - generic [ref=e111]: 7 cards
+      - button "Bulk select" [ref=e113]
+      - generic [ref=e114]:
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - button "Reorder Backlog column" [ref=e117]:
+              - img [ref=e118]
+            - textbox "Column title" [ref=e126]: Backlog
+            - generic "6 cards" [ref=e127]: "6"
+            - button "Edit WIP limit for Backlog" [ref=e128]:
+              - img [ref=e129]
+          - generic [ref=e131]:
+            - 'button "Feature - High Priority: PDF Ingestion Pipeline Feature: Implement PDF ingestion pipeline Toggle comments for Feature - High Priority: PDF Ingestion Pipeline Edit Feature - High Priority: PDF Ingestion Pipeline Archive Feature - High Priority: PDF Ingestion Pipeline Drop Feature - High Priority: PDF Ingestion Pipeline" [ref=e133]':
+              - generic:
+                - img
+              - 'button "Feature - High Priority: PDF Ingestion Pipeline" [ref=e135]'
+              - paragraph [ref=e137]: "Feature: Implement PDF ingestion pipeline"
+              - 'textbox "Add a subtask to Feature - High Priority: PDF Ingestion Pipeline" [ref=e139]':
+                - /placeholder: + Add subtask
+              - generic [ref=e140]:
+                - 'button "Toggle comments for Feature - High Priority: PDF Ingestion Pipeline" [ref=e141]':
+                  - img [ref=e142]
+                - 'button "Edit Feature - High Priority: PDF Ingestion Pipeline" [ref=e144]':
+                  - img [ref=e145]
+                  - text: Edit
+                - 'button "Archive Feature - High Priority: PDF Ingestion Pipeline" [ref=e147]':
+                  - img [ref=e148]
+                  - text: Archive
+                - 'button "Drop Feature - High Priority: PDF Ingestion Pipeline" [ref=e150]':
+                  - img [ref=e151]
+                  - text: Drop
+            - 'button "Bug - Medium Priority: Text Overflow Fix Bug: Fix text overflow issue in extraction module Toggle comments for Bug - Medium Priority: Text Overflow Fix Edit Bug - Medium Priority: Text Overflow Fix Archive Bug - Medium Priority: Text Overflow Fix Drop Bug - Medium Priority: Text Overflow Fix" [ref=e154]':
+              - generic:
+                - img
+              - 'button "Bug - Medium Priority: Text Overflow Fix" [ref=e156]'
+              - paragraph [ref=e158]: "Bug: Fix text overflow issue in extraction module"
+              - 'textbox "Add a subtask to Bug - Medium Priority: Text Overflow Fix" [ref=e160]':
+                - /placeholder: + Add subtask
+              - generic [ref=e161]:
+                - 'button "Toggle comments for Bug - Medium Priority: Text Overflow Fix" [ref=e162]':
+                  - img [ref=e163]
+                - 'button "Edit Bug - Medium Priority: Text Overflow Fix" [ref=e165]':
+                  - img [ref=e166]
+                  - text: Edit
+                - 'button "Archive Bug - Medium Priority: Text Overflow Fix" [ref=e168]':
+                  - img [ref=e169]
+                  - text: Archive
+                - 'button "Drop Bug - Medium Priority: Text Overflow Fix" [ref=e171]':
+                  - img [ref=e172]
+                  - text: Drop
+            - 'button "Research - Low Priority: Layout Accuracy Study Research: Evaluate extraction accuracy across document layouts Toggle comments for Research - Low Priority: Layout Accuracy Study Edit Research - Low Priority: Layout Accuracy Study Archive Research - Low Priority: Layout Accuracy Study Drop Research - Low Priority: Layout Accuracy Study" [ref=e175]':
+              - generic:
+                - img
+              - 'button "Research - Low Priority: Layout Accuracy Study" [ref=e177]'
+              - paragraph [ref=e179]: "Research: Evaluate extraction accuracy across document layouts"
+              - 'textbox "Add a subtask to Research - Low Priority: Layout Accuracy Study" [ref=e181]':
+                - /placeholder: + Add subtask
+              - generic [ref=e182]:
+                - 'button "Toggle comments for Research - Low Priority: Layout Accuracy Study" [ref=e183]':
+                  - img [ref=e184]
+                - 'button "Edit Research - Low Priority: Layout Accuracy Study" [ref=e186]':
+                  - img [ref=e187]
+                  - text: Edit
+                - 'button "Archive Research - Low Priority: Layout Accuracy Study" [ref=e189]':
+                  - img [ref=e190]
+                  - text: Archive
+                - 'button "Drop Research - Low Priority: Layout Accuracy Study" [ref=e192]':
+                  - img [ref=e193]
+                  - text: Drop
+            - 'button "Task - High Priority: Test Suite Development High Task: Create test suite for PDF extraction Toggle comments for Task - High Priority: Test Suite Development Edit Task - High Priority: Test Suite Development Archive Task - High Priority: Test Suite Development Drop Task - High Priority: Test Suite Development" [ref=e196]':
+              - generic:
+                - img
+              - generic [ref=e197]:
+                - 'button "Task - High Priority: Test Suite Development" [ref=e198]'
+                - generic [ref=e199]: High
+              - paragraph [ref=e201]: "Task: Create test suite for PDF extraction"
+              - 'textbox "Add a subtask to Task - High Priority: Test Suite Development" [ref=e203]':
+                - /placeholder: + Add subtask
+              - generic [ref=e204]:
+                - 'button "Toggle comments for Task - High Priority: Test Suite Development" [ref=e205]':
+                  - img [ref=e206]
+                - 'button "Edit Task - High Priority: Test Suite Development" [ref=e208]':
+                  - img [ref=e209]
+                  - text: Edit
+                - 'button "Archive Task - High Priority: Test Suite Development" [ref=e211]':
+                  - img [ref=e212]
+                  - text: Archive
+                - 'button "Drop Task - High Priority: Test Suite Development" [ref=e214]':
+                  - img [ref=e215]
+                  - text: Drop
+            - 'button "Feature - Medium Priority: Encrypted PDF Support Feature: Add support for encrypted PDFs Toggle comments for Feature - Medium Priority: Encrypted PDF Support Edit Feature - Medium Priority: Encrypted PDF Support Archive Feature - Medium Priority: Encrypted PDF Support Drop Feature - Medium Priority: Encrypted PDF Support" [ref=e218]':
+              - generic:
+                - img
+              - 'button "Feature - Medium Priority: Encrypted PDF Support" [ref=e220]'
+              - paragraph [ref=e222]: "Feature: Add support for encrypted PDFs"
+              - 'textbox "Add a subtask to Feature - Medium Priority: Encrypted PDF Support" [ref=e224]':
+                - /placeholder: + Add subtask
+              - generic [ref=e225]:
+                - 'button "Toggle comments for Feature - Medium Priority: Encrypted PDF Support" [ref=e226]':
+                  - img [ref=e227]
+                - 'button "Edit Feature - Medium Priority: Encrypted PDF Support" [ref=e229]':
+                  - img [ref=e230]
+                  - text: Edit
+                - 'button "Archive Feature - Medium Priority: Encrypted PDF Support" [ref=e232]':
+                  - img [ref=e233]
+                  - text: Archive
+                - 'button "Drop Feature - Medium Priority: Encrypted PDF Support" [ref=e235]':
+                  - img [ref=e236]
+                  - text: Drop
+            - 'button "Bug - Low Priority: Metadata Crash Fix Bug: Resolve crash on malformed PDF metadata Toggle comments for Bug - Low Priority: Metadata Crash Fix Edit Bug - Low Priority: Metadata Crash Fix Archive Bug - Low Priority: Metadata Crash Fix Drop Bug - Low Priority: Metadata Crash Fix" [ref=e239]':
+              - generic:
+                - img
+              - 'button "Bug - Low Priority: Metadata Crash Fix" [ref=e241]'
+              - paragraph [ref=e243]: "Bug: Resolve crash on malformed PDF metadata"
+              - 'textbox "Add a subtask to Bug - Low Priority: Metadata Crash Fix" [ref=e245]':
+                - /placeholder: + Add subtask
+              - generic [ref=e246]:
+                - 'button "Toggle comments for Bug - Low Priority: Metadata Crash Fix" [ref=e247]':
+                  - img [ref=e248]
+                - 'button "Edit Bug - Low Priority: Metadata Crash Fix" [ref=e250]':
+                  - img [ref=e251]
+                  - text: Edit
+                - 'button "Archive Bug - Low Priority: Metadata Crash Fix" [ref=e253]':
+                  - img [ref=e254]
+                  - text: Archive
+                - 'button "Drop Bug - Low Priority: Metadata Crash Fix" [ref=e256]':
+                  - img [ref=e257]
+                  - text: Drop
+          - button "+ Add a card" [ref=e260]:
+            - generic [ref=e261]: +
+            - text: Add a card
+        - generic [ref=e262]:
+          - generic [ref=e263]:
+            - button "Reorder In Progress column" [ref=e264]:
+              - img [ref=e265]
+            - textbox "Column title" [ref=e273]: In Progress
+            - generic "0 cards" [ref=e274]: "0"
+            - button "Edit WIP limit for In Progress" [ref=e275]:
+              - img [ref=e276]
+            - button "Delete In Progress column" [ref=e278]:
+              - img [ref=e279]
+          - generic [ref=e282]: Drop a card here
+          - button "+ Add a card" [ref=e284]:
+            - generic [ref=e285]: +
+            - text: Add a card
+        - generic [ref=e286]:
+          - generic [ref=e287]:
+            - button "Reorder Review column" [ref=e288]:
+              - img [ref=e289]
+            - textbox "Column title" [ref=e297]: Review
+            - generic "1 cards" [ref=e298]: "1"
+            - button "Edit WIP limit for Review" [ref=e299]:
+              - img [ref=e300]
+          - button "Cool Urgent Details to be updated Checklist 3/3 Toggle SubTask1 SubTask1 Remove SubTask1 Toggle SubTask2 SubTask2 Remove SubTask2 Toggle SubTask3 SubTask3 Remove SubTask3 Toggle comments for Cool Edit Cool Archive Cool Drop Cool" [ref=e304]:
+            - generic:
+              - img
+            - generic [ref=e305]:
+              - button "Cool" [ref=e306]
+              - generic [ref=e307]: Urgent
+            - paragraph [ref=e309]: Details to be updated
+            - generic [ref=e310]:
+              - generic [ref=e311]:
+                - generic [ref=e312]: Checklist
+                - generic [ref=e313]: 3/3
+              - list [ref=e316]:
+                - listitem [ref=e317]:
+                  - checkbox "Toggle SubTask1" [checked] [ref=e318] [cursor=pointer]
+                  - generic [ref=e319]: SubTask1
+                  - button "Remove SubTask1" [ref=e320]: ×
+                - listitem [ref=e321]:
+                  - checkbox "Toggle SubTask2" [checked] [ref=e322] [cursor=pointer]
+                  - generic [ref=e323]: SubTask2
+                  - button "Remove SubTask2" [ref=e324]: ×
+                - listitem [ref=e325]:
+                  - checkbox "Toggle SubTask3" [checked] [ref=e326] [cursor=pointer]
+                  - generic [ref=e327]: SubTask3
+                  - button "Remove SubTask3" [ref=e328]: ×
+            - textbox "Add a subtask to Cool" [ref=e330]:
+              - /placeholder: + Add subtask
+            - generic [ref=e331]:
+              - button "Toggle comments for Cool" [ref=e332]:
+                - img [ref=e333]
+              - button "Edit Cool" [ref=e335]:
+                - img [ref=e336]
+                - text: Edit
+              - button "Archive Cool" [ref=e338]:
+                - img [ref=e339]
+                - text: Archive
+              - button "Drop Cool" [ref=e341]:
+                - img [ref=e342]
+                - text: Drop
+          - button "+ Add a card" [ref=e345]:
+            - generic [ref=e346]: +
+            - text: Add a card
+        - generic [ref=e347]:
+          - generic [ref=e348]:
+            - button "Reorder Done column" [ref=e349]:
+              - img [ref=e350]
+            - textbox "Column title" [ref=e358]: Done
+            - generic "0 cards" [ref=e359]: "0"
+            - button "Edit WIP limit for Done" [ref=e360]:
+              - img [ref=e361]
+            - button "Delete Done column" [ref=e363]:
+              - img [ref=e364]
+          - generic [ref=e367]: Drop a card here
+          - button "+ Add a card" [ref=e369]:
+            - generic [ref=e370]: +
+            - text: Add a card
+        - button "+ Add column" [ref=e372]
+      - status [ref=e373]
+  - complementary [ref=e374]:
+    - generic [ref=e375]:
+      - generic [ref=e376]:
+        - paragraph [ref=e377]: AI Assistant
+        - heading "Chat" [level=2] [ref=e378]
+      - img [ref=e380]
+    - generic [ref=e383]:
+      - paragraph [ref=e384]: "Ask the assistant to create, edit, or rearrange cards. Try one of these to get started:"
+      - generic [ref=e385]:
+        - button "Add a card in Backlog to draft the release notes." [ref=e386]
+        - button "Move the prototype card to In Progress." [ref=e387]
+        - button "Summarize the board for me." [ref=e388]
+    - generic [ref=e389]:
+      - textbox "Chat message" [ref=e390]:
+        - /placeholder: Ask the assistant... (Enter to send, Shift+Enter for newline)
+      - button "Send" [disabled] [ref=e391]

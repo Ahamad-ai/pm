@@ -1,0 +1,150 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - banner [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e42]: K
+        - generic [ref=e43]:
+          - generic [ref=e44]: Kanban Studio
+          - generic [ref=e45]: / Demo User
+      - generic [ref=e46]:
+        - button "My Board" [ref=e48]:
+          - generic [ref=e50]: My Board
+          - img [ref=e51]
+        - searchbox "Global search" [ref=e54]
+        - button "Share" [ref=e55]
+        - link "Export" [ref=e56] [cursor=pointer]:
+          - /url: /api/boards/1/export
+        - button "My Tasks" [ref=e57]
+        - button "Archive" [ref=e58]
+        - tablist "Board view" [ref=e59]:
+          - tab "Board" [selected] [ref=e60]
+          - tab "Calendar" [ref=e61]
+        - button "Activity" [ref=e62]
+        - button "Notifications" [ref=e64]:
+          - img [ref=e65]
+        - button "Keyboard shortcuts" [ref=e67]: "?"
+        - generic [ref=e68]: Saved
+        - button "Demo User" [ref=e71]
+  - generic [ref=e72]:
+    - region "Board statistics" [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]: Cards
+        - generic [ref=e77]: "1"
+      - generic [ref=e78]:
+        - generic [ref=e79]: Columns
+        - generic [ref=e80]: "4"
+      - generic [ref=e81]:
+        - generic [ref=e82]: Overdue
+        - generic [ref=e83]: "0"
+      - generic [ref=e84]:
+        - generic [ref=e85]: With due date
+        - generic [ref=e86]: "0"
+    - main [ref=e89]:
+      - generic [ref=e90]:
+        - paragraph [ref=e91]: Single Board Kanban
+        - heading "Kanban Studio" [level=1] [ref=e92]
+        - paragraph [ref=e93]: Drag cards across stages, capture quick notes, and lean on the AI assistant when you need a hand.
+      - region "Card filters" [ref=e94]:
+        - searchbox "Search cards" [ref=e95]
+        - generic [ref=e96]:
+          - button "Urgent" [ref=e97]
+          - button "High" [ref=e98]
+          - button "Medium" [ref=e99]
+          - button "Low" [ref=e100]
+        - generic [ref=e101]:
+          - checkbox "Overdue" [ref=e102]
+          - text: Overdue
+        - generic [ref=e103]: 1 cards
+      - button "Bulk select" [ref=e105]
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - button "Reorder Backlog column" [ref=e109]:
+              - img [ref=e110]
+            - textbox "Column title" [ref=e118]: Backlog
+            - generic "1 cards" [ref=e234]: "1"
+            - button "Edit WIP limit for Backlog" [ref=e120]:
+              - img [ref=e121]
+          - button "Drag me No details yet. Toggle comments for Drag me Edit Drag me Archive Drag me Drop Drag me" [ref=e236]:
+            - generic:
+              - img
+            - button "Drag me" [ref=e238]
+            - paragraph [ref=e240]: No details yet.
+            - textbox "Add a subtask to Drag me" [ref=e242]:
+              - /placeholder: + Add subtask
+            - generic [ref=e243]:
+              - button "Toggle comments for Drag me" [ref=e244]:
+                - img [ref=e245]
+              - button "Edit Drag me" [ref=e247]:
+                - img [ref=e248]
+                - text: Edit
+              - button "Archive Drag me" [ref=e250]:
+                - img [ref=e251]
+                - text: Archive
+              - button "Drop Drag me" [ref=e253]:
+                - img [ref=e254]
+                - text: Drop
+          - button "+ Add a card" [ref=e256]:
+            - generic [ref=e257]: +
+            - text: Add a card
+        - generic [ref=e131]:
+          - generic [ref=e132]:
+            - button "Reorder In Progress column" [ref=e133]:
+              - img [ref=e134]
+            - textbox "Column title" [ref=e142]: In Progress
+            - generic "0 cards" [ref=e143]: "0"
+            - button "Edit WIP limit for In Progress" [ref=e144]:
+              - img [ref=e145]
+            - button "Delete In Progress column" [ref=e147]:
+              - img [ref=e148]
+          - generic [ref=e151]: Drop a card here
+          - button "+ Add a card" [ref=e153]:
+            - generic [ref=e154]: +
+            - text: Add a card
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - button "Reorder Review column" [ref=e157]:
+              - img [ref=e158]
+            - textbox "Column title" [ref=e166]: Review
+            - generic "0 cards" [ref=e167]: "0"
+            - button "Edit WIP limit for Review" [ref=e168]:
+              - img [ref=e169]
+            - button "Delete Review column" [ref=e171]:
+              - img [ref=e172]
+          - generic [ref=e175]: Drop a card here
+          - button "+ Add a card" [ref=e177]:
+            - generic [ref=e178]: +
+            - text: Add a card
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - button "Reorder Done column" [ref=e181]:
+              - img [ref=e182]
+            - textbox "Column title" [ref=e190]: Done
+            - generic "0 cards" [ref=e191]: "0"
+            - button "Edit WIP limit for Done" [ref=e192]:
+              - img [ref=e193]
+            - button "Delete Done column" [ref=e195]:
+              - img [ref=e196]
+          - generic [ref=e199]: Drop a card here
+          - button "+ Add a card" [ref=e201]:
+            - generic [ref=e202]: +
+            - text: Add a card
+        - button "+ Add column" [ref=e204]
+      - status [ref=e205]
+  - complementary [ref=e206]:
+    - generic [ref=e207]:
+      - generic [ref=e208]:
+        - paragraph [ref=e209]: AI Assistant
+        - heading "Chat" [level=2] [ref=e210]
+      - img [ref=e212]
+    - generic [ref=e215]:
+      - paragraph [ref=e216]: "Ask the assistant to create, edit, or rearrange cards. Try one of these to get started:"
+      - generic [ref=e217]:
+        - button "Add a card in Backlog to draft the release notes." [ref=e218]
+        - button "Move the prototype card to In Progress." [ref=e219]
+        - button "Summarize the board for me." [ref=e220]
+    - generic [ref=e221]:
+      - textbox "Chat message" [ref=e222]:
+        - /placeholder: Ask the assistant... (Enter to send, Shift+Enter for newline)
+      - button "Send" [disabled] [ref=e223]

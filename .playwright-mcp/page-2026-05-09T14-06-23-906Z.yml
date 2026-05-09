@@ -1,0 +1,197 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e6]: K
+        - generic [ref=e7]:
+          - generic [ref=e8]: Kanban Studio
+          - generic [ref=e9]: / Demo User
+      - generic [ref=e10]:
+        - button "My Board" [ref=e12]:
+          - generic [ref=e14]: My Board
+          - img [ref=e15]
+        - searchbox "Global search" [ref=e18]
+        - button "Share" [ref=e19]
+        - link "Export" [ref=e20] [cursor=pointer]:
+          - /url: /api/boards/1/export
+        - button "My Tasks" [ref=e21]
+        - button "Archive" [ref=e22]
+        - tablist "Board view" [ref=e23]:
+          - tab "Board" [selected] [ref=e24]
+          - tab "Calendar" [ref=e25]
+        - button "Activity" [ref=e26]
+        - button "Notifications" [ref=e28]:
+          - img [ref=e29]
+        - button "Keyboard shortcuts" [ref=e31]: "?"
+        - generic [ref=e32]: Saved
+        - button "Demo User" [ref=e35]
+  - alert [ref=e36]
+  - generic [ref=e37]:
+    - region "Board statistics" [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]: Cards
+        - generic [ref=e42]: "2"
+      - generic [ref=e43]:
+        - generic [ref=e44]: Columns
+        - generic [ref=e45]: "4"
+      - generic [ref=e46]:
+        - generic [ref=e47]: Overdue
+        - generic [ref=e48]: "0"
+      - generic [ref=e49]:
+        - generic [ref=e50]: With due date
+        - generic [ref=e51]: "0"
+      - generic [ref=e52]:
+        - generic [ref=e53]: Subtasks
+        - generic [ref=e54]: 1/4
+    - main [ref=e57]:
+      - generic [ref=e58]:
+        - paragraph [ref=e59]: Single Board Kanban
+        - heading "Kanban Studio" [level=1] [ref=e60]
+        - paragraph [ref=e61]: Drag cards across stages, capture quick notes, and lean on the AI assistant when you need a hand.
+      - region "Card filters" [ref=e62]:
+        - searchbox "Search cards" [ref=e63]
+        - generic [ref=e64]:
+          - button "Urgent" [ref=e65]
+          - button "High" [ref=e66]
+          - button "Medium" [ref=e67]
+          - button "Low" [ref=e68]
+        - generic [ref=e69]:
+          - checkbox "Overdue" [ref=e70]
+          - text: Overdue
+        - generic [ref=e71]: 2 cards
+      - button "Bulk select" [ref=e73]
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - button "Reorder Backlog column" [ref=e77]:
+              - img [ref=e78]
+            - textbox "Column title" [ref=e86]: Backlog
+            - generic "1 cards" [ref=e87]: "1"
+            - button "Edit WIP limit for Backlog" [ref=e88]:
+              - img [ref=e89]
+          - button "t No details yet. Checklist 0/1 Toggle st st Remove st Toggle comments for t Edit t Archive t Drop t" [ref=e93]:
+            - generic:
+              - img
+            - button "t" [ref=e95]
+            - paragraph [ref=e97]: No details yet.
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - generic [ref=e100]: Checklist
+                - generic [ref=e101]: 0/1
+              - list [ref=e103]:
+                - listitem [ref=e104]:
+                  - checkbox "Toggle st" [ref=e105] [cursor=pointer]
+                  - generic [ref=e106]: st
+                  - button "Remove st" [ref=e107]: ×
+            - textbox "Add a subtask to t" [ref=e109]:
+              - /placeholder: + Add subtask
+            - generic [ref=e110]:
+              - button "Toggle comments for t" [ref=e111]:
+                - img [ref=e112]
+              - button "Edit t" [ref=e114]:
+                - img [ref=e115]
+                - text: Edit
+              - button "Archive t" [ref=e117]:
+                - img [ref=e118]
+                - text: Archive
+              - button "Drop t" [ref=e120]:
+                - img [ref=e121]
+                - text: Drop
+          - button "+ Add a card" [ref=e124]:
+            - generic [ref=e125]: +
+            - text: Add a card
+        - generic [ref=e126]:
+          - generic [ref=e127]:
+            - button "Reorder In Progress column" [ref=e128]:
+              - img [ref=e129]
+            - textbox "Column title" [ref=e137]: In Progress
+            - generic "0 cards" [ref=e138]: "0"
+            - button "Edit WIP limit for In Progress" [ref=e139]:
+              - img [ref=e140]
+            - button "Delete In Progress column" [ref=e142]:
+              - img [ref=e143]
+          - generic [ref=e146]: Drop a card here
+          - button "+ Add a card" [ref=e148]:
+            - generic [ref=e149]: +
+            - text: Add a card
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - button "Reorder Review column" [ref=e152]:
+              - img [ref=e153]
+            - textbox "Column title" [ref=e161]: Review
+            - generic "1 cards" [ref=e162]: "1"
+            - button "Edit WIP limit for Review" [ref=e163]:
+              - img [ref=e164]
+          - button "Drag me No details yet. Checklist 1/3 Toggle Task1 Task1 Remove Task1 Toggle Task 2 Task 2 Remove Task 2 Toggle Task 3 Task 3 Remove Task 3 Toggle comments for Drag me Edit Drag me Archive Drag me Drop Drag me" [ref=e168]:
+            - generic:
+              - img
+            - button "Drag me" [ref=e170]
+            - paragraph [ref=e172]: No details yet.
+            - generic [ref=e173]:
+              - generic [ref=e174]:
+                - generic [ref=e175]: Checklist
+                - generic [ref=e176]: 1/3
+              - list [ref=e179]:
+                - listitem [ref=e180]:
+                  - checkbox "Toggle Task1" [ref=e181] [cursor=pointer]
+                  - generic [ref=e182]: Task1
+                  - button "Remove Task1" [ref=e183]: ×
+                - listitem [ref=e184]:
+                  - checkbox "Toggle Task 2" [checked] [ref=e185] [cursor=pointer]
+                  - generic [ref=e186]: Task 2
+                  - button "Remove Task 2" [ref=e187]: ×
+                - listitem [ref=e188]:
+                  - checkbox "Toggle Task 3" [ref=e189] [cursor=pointer]
+                  - generic [ref=e190]: Task 3
+                  - button "Remove Task 3" [ref=e191]: ×
+            - textbox "Add a subtask to Drag me" [ref=e193]:
+              - /placeholder: + Add subtask
+            - generic [ref=e194]:
+              - button "Toggle comments for Drag me" [ref=e195]:
+                - img [ref=e196]
+              - button "Edit Drag me" [ref=e198]:
+                - img [ref=e199]
+                - text: Edit
+              - button "Archive Drag me" [ref=e201]:
+                - img [ref=e202]
+                - text: Archive
+              - button "Drop Drag me" [ref=e204]:
+                - img [ref=e205]
+                - text: Drop
+          - button "+ Add a card" [ref=e208]:
+            - generic [ref=e209]: +
+            - text: Add a card
+        - generic [ref=e210]:
+          - generic [ref=e211]:
+            - button "Reorder Done column" [ref=e212]:
+              - img [ref=e213]
+            - textbox "Column title" [ref=e221]: Done
+            - generic "0 cards" [ref=e222]: "0"
+            - button "Edit WIP limit for Done" [ref=e223]:
+              - img [ref=e224]
+            - button "Delete Done column" [ref=e226]:
+              - img [ref=e227]
+          - generic [ref=e230]: Drop a card here
+          - button "+ Add a card" [ref=e232]:
+            - generic [ref=e233]: +
+            - text: Add a card
+        - button "+ Add column" [ref=e235]
+      - status [ref=e236]
+  - complementary [ref=e237]:
+    - generic [ref=e238]:
+      - generic [ref=e239]:
+        - img [ref=e241]
+        - generic [ref=e243]:
+          - paragraph [ref=e244]: AI Assistant
+          - heading "Chat" [level=2] [ref=e245]
+      - button "Collapse AI assistant" [ref=e246]: Hide
+    - generic [ref=e248]:
+      - paragraph [ref=e249]: "Ask the assistant to create, edit, or rearrange cards. Try one of these to get started:"
+      - generic [ref=e250]:
+        - button "Add a card in Backlog to draft the release notes." [ref=e251]
+        - button "Move the prototype card to In Progress." [ref=e252]
+        - button "Summarize the board for me." [ref=e253]
+    - generic [ref=e254]:
+      - textbox "Chat message" [ref=e255]:
+        - /placeholder: Ask the assistant... (Enter to send, Shift+Enter for newline)
+      - button "Send" [disabled] [ref=e256]

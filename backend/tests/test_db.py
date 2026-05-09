@@ -75,8 +75,8 @@ def test_get_board_rejects_malformed_json_at_boundary(tmp_path: Path) -> None:
     with sqlite3.connect(db_path) as connection:
         cursor = connection.execute("INSERT INTO users(username) VALUES (?)", ("user",))
         connection.execute(
-            "INSERT INTO boards(user_id, board_json) VALUES (?, ?)",
-            (cursor.lastrowid, "{not-json"),
+            "INSERT INTO boards(user_id, name, board_json) VALUES (?, ?, ?)",
+            (cursor.lastrowid, "My Board", "{not-json"),
         )
         connection.commit()
 

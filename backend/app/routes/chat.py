@@ -6,7 +6,8 @@ from pydantic import ValidationError
 from slowapi import Limiter
 
 from backend.app.board_patch import apply_board_update_patch
-from backend.app.board_service import get_or_create_board_for_user, save_board_for_user
+from backend.app.board_service import resolve_board_for_chat
+from backend.app.db import record_activity, update_board_for_user
 from backend.app.dependencies import require_username
 from backend.app.openrouter import (
     get_openrouter_api_key,
@@ -76,7 +77,12 @@ def create_router(
         username = require_username(authorization, x_username)
         message = normalize_message(payload.message)
         api_key = get_openrouter_api_key()
-        board = get_or_create_board_for_user(username, db_path)
+
+        try:
+            board_id, board = resolve_board_for_chat(username, payload.board_id, db_path)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
         structured = await _request_validated_structured_chat(
             api_key=api_key,
             board=board,
@@ -95,21 +101,36 @@ def create_router(
                 board,
             )
             try:
-                next_board = save_board_for_user(
-                    username,
-                    merged_candidate,
-                    db_path,
+                record = update_board_for_user(
+                    username=username,
+                    board_id=board_id,
+                    board=merged_candidate,
+                    db_path=db_path,
                 )
+            except PermissionError as exc:
+                raise HTTPException(status_code=403, detail=str(exc)) from exc
             except ValueError as exc:
                 raise HTTPException(
                     status_code=422,
                     detail=f"AI returned invalid board_update: {exc}",
                 ) from exc
+            next_board = record["board"]
+            try:
+                record_activity(
+                    username=username,
+                    board_id=board_id,
+                    action="board.ai_updated",
+                    details={"summary": structured.assistant_message[:160]},
+                    db_path=db_path,
+                )
+            except ValueError:
+                pass
 
         return ChatResponse(
             assistant_message=structured.assistant_message,
             board_updated=board_updated,
             board=BoardModel.model_validate(next_board),
+            board_id=board_id,
         )
 
     return router
