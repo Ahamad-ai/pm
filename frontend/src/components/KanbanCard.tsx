@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
@@ -6,11 +6,12 @@ import type { Card } from "@/lib/kanban";
 
 type KanbanCardProps = {
   card: Card;
+  accentColor: string;
   onDelete: (cardId: string) => void;
   onEdit: (cardId: string, title: string, details: string) => void;
 };
 
-export const KanbanCard = ({ card, onDelete, onEdit }: KanbanCardProps) => {
+export const KanbanCard = ({ card, accentColor, onDelete, onEdit }: KanbanCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(card.title);
   const [detailsDraft, setDetailsDraft] = useState(card.details);
@@ -18,9 +19,10 @@ export const KanbanCard = ({ card, onDelete, onEdit }: KanbanCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id, disabled: isEditing });
 
-  const style = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
+    borderLeftColor: accentColor,
   };
 
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
@@ -39,67 +41,81 @@ export const KanbanCard = ({ card, onDelete, onEdit }: KanbanCardProps) => {
       ref={setNodeRef}
       style={style}
       className={clsx(
-        "rounded-2xl border border-transparent bg-white px-4 py-4 shadow-[0_12px_24px_rgba(3,33,71,0.08)]",
-        "transition-all duration-150",
-        isDragging && "opacity-60 shadow-[0_18px_32px_rgba(3,33,71,0.16)]"
+        "group relative rounded-2xl border border-[var(--stroke)] border-l-[3px] bg-white px-4 py-3.5 shadow-[var(--shadow-card)]",
+        "transition-shadow duration-150",
+        !isDragging && !isEditing && "hover:shadow-[var(--shadow-card-hover)]",
+        isDragging && "opacity-60 shadow-[var(--shadow-card-hover)]",
+        !isEditing && !isDragging && "cursor-grab active:cursor-grabbing"
       )}
       {...(!isEditing ? attributes : {})}
       {...(!isEditing ? listeners : {})}
       data-testid={`card-${card.id}`}
     >
-      <div>
-        {isEditing ? (
-          <form onSubmit={handleSave} className="space-y-2">
-            <input
-              value={titleDraft}
-              onChange={(event) => setTitleDraft(event.target.value)}
-              className="w-full rounded-lg border border-[var(--stroke)] px-2 py-1 text-sm font-semibold text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
-              aria-label={`Edit title for ${card.title}`}
-            />
-            <textarea
-              value={detailsDraft}
-              onChange={(event) => setDetailsDraft(event.target.value)}
-              rows={3}
-              className="w-full resize-none rounded-lg border border-[var(--stroke)] px-2 py-1 text-sm text-[var(--gray-text)] outline-none focus:border-[var(--primary-blue)]"
-              aria-label={`Edit details for ${card.title}`}
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                className="rounded-full bg-[var(--secondary-purple)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setTitleDraft(card.title);
-                  setDetailsDraft(card.details);
-                  setIsEditing(false);
-                }}
-                className="rounded-full border border-[var(--stroke)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--gray-text)]"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <h4 className="font-display text-base font-semibold text-[var(--navy-dark)]">
-              {card.title}
-            </h4>
-            <p className="mt-2 text-sm leading-6 text-[var(--gray-text)]">
-              {card.details}
-            </p>
-          </>
-        )}
+      {!isEditing ? (
+        <span
+          className="pointer-events-none absolute right-2.5 top-3 text-[var(--gray-text)] opacity-0 transition group-hover:opacity-50"
+          aria-hidden="true"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="6" r="1.5" />
+            <circle cx="15" cy="6" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" />
+            <circle cx="15" cy="12" r="1.5" />
+            <circle cx="9" cy="18" r="1.5" />
+            <circle cx="15" cy="18" r="1.5" />
+          </svg>
+        </span>
+      ) : null}
 
-        {!isEditing ? (
-          <div className="mt-3 flex items-center justify-end gap-2">
+      {isEditing ? (
+        <form onSubmit={handleSave} className="space-y-2">
+          <input
+            value={titleDraft}
+            onChange={(event) => setTitleDraft(event.target.value)}
+            className="w-full rounded-lg border border-[var(--stroke)] px-2 py-1 text-sm font-semibold text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)] focus:ring-2 focus:ring-[var(--primary-blue)]/20"
+            aria-label={`Edit title for ${card.title}`}
+          />
+          <textarea
+            value={detailsDraft}
+            onChange={(event) => setDetailsDraft(event.target.value)}
+            rows={3}
+            className="w-full resize-none rounded-lg border border-[var(--stroke)] px-2 py-1 text-sm text-[var(--gray-text)] outline-none focus:border-[var(--primary-blue)] focus:ring-2 focus:ring-[var(--primary-blue)]/20"
+            aria-label={`Edit details for ${card.title}`}
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              className="rounded-full bg-[var(--secondary-purple)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white shadow-[0_4px_10px_rgba(117,57,145,0.25)] transition hover:brightness-110"
+            >
+              Save
+            </button>
             <button
               type="button"
+              onClick={() => {
+                setTitleDraft(card.title);
+                setDetailsDraft(card.details);
+                setIsEditing(false);
+              }}
+              className="rounded-full border border-[var(--stroke)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--gray-text)] transition hover:text-[var(--navy-dark)]"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <h4 className="pr-5 font-display text-[15px] font-semibold leading-snug text-[var(--navy-dark)]">
+            {card.title}
+          </h4>
+          <p className="mt-1.5 text-[13px] leading-6 text-[var(--gray-text)]">
+            {card.details}
+          </p>
+          <div className="mt-3 flex items-center justify-end gap-1 opacity-60 transition group-hover:opacity-100">
+            <button
+              type="button"
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-1 text-xs font-semibold text-[var(--gray-text)] transition hover:border-[var(--stroke)] hover:text-[var(--navy-dark)]"
+              className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-1 text-xs font-semibold text-[var(--gray-text)] transition hover:border-[var(--stroke)] hover:bg-[var(--surface-muted)] hover:text-[var(--navy-dark)]"
               aria-label={`Edit ${card.title}`}
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
@@ -109,8 +125,9 @@ export const KanbanCard = ({ card, onDelete, onEdit }: KanbanCardProps) => {
             </button>
             <button
               type="button"
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={() => onDelete(card.id)}
-              className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-1 text-xs font-semibold text-[var(--gray-text)] transition hover:border-[var(--stroke)] hover:text-[var(--navy-dark)]"
+              className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-1 text-xs font-semibold text-[var(--gray-text)] transition hover:border-[var(--secondary-purple)]/30 hover:bg-[var(--secondary-purple)]/5 hover:text-[var(--secondary-purple)]"
               aria-label={`Drop ${card.title}`}
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
@@ -119,8 +136,8 @@ export const KanbanCard = ({ card, onDelete, onEdit }: KanbanCardProps) => {
               Drop
             </button>
           </div>
-        ) : null}
-      </div>
+        </>
+      )}
     </article>
   );
 };

@@ -47,6 +47,38 @@ test("moves a card between columns", async ({ page }) => {
   await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
 });
 
+test("moves a card into an empty column", async ({ page }) => {
+  await signIn(page);
+
+  // Empty out the Review column (it ships with one card).
+  await page
+    .getByTestId("card-card-6")
+    .getByRole("button", { name: /^drop QA micro-interactions$/i })
+    .click();
+  const targetColumn = page.getByTestId("column-col-review");
+  await expect(targetColumn.getByText(/drop a card here/i)).toBeVisible();
+
+  const card = page.getByTestId("card-card-1");
+  const cardBox = await card.boundingBox();
+  const columnBox = await targetColumn.boundingBox();
+  if (!cardBox || !columnBox) {
+    throw new Error("Unable to resolve drag coordinates.");
+  }
+
+  await page.mouse.move(
+    cardBox.x + cardBox.width / 2,
+    cardBox.y + cardBox.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    columnBox.x + columnBox.width / 2,
+    columnBox.y + columnBox.height / 2,
+    { steps: 12 }
+  );
+  await page.mouse.up();
+  await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
+});
+
 test("shows error on invalid login", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Username").fill("bad");

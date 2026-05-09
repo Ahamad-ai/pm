@@ -6,10 +6,15 @@
   --secondary-purple: #753991;
   --navy-dark: #032147;
   --gray-text: #888888;
-  --surface: #f7f8fb;
+  --surface: #f4f6fb;
   --surface-strong: #ffffff;
+  --surface-muted: #eceff5;
   --stroke: rgba(3, 33, 71, 0.08);
+  --stroke-strong: rgba(3, 33, 71, 0.16);
   --shadow: 0 18px 40px rgba(3, 33, 71, 0.12);
+  --shadow-soft: 0 8px 24px rgba(3, 33, 71, 0.06);
+  --shadow-card: 0 4px 12px rgba(3, 33, 71, 0.06);
+  --shadow-card-hover: 0 12px 26px rgba(3, 33, 71, 0.14);
 }
 
 @theme inline {
@@ -23,44 +28,104 @@
 }
 
 body {
-  background: var(--surface);
+  background:
+    radial-gradient(circle at 8% 6%, rgba(32, 157, 215, 0.10), transparent 38%),
+    radial-gradient(circle at 95% 95%, rgba(117, 57, 145, 0.08), transparent 42%),
+    var(--surface);
+  background-attachment: fixed;
   color: var(--navy-dark);
   font-family: var(--font-body), "Segoe UI", sans-serif;
   margin: 0;
+  min-height: 100vh;
 }
 
 .font-display {
   font-family: var(--font-display), "Segoe UI", sans-serif;
+  letter-spacing: -0.015em;
 }
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(3, 33, 71, 0.16) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(3, 33, 71, 0.16);
+  border-radius: 999px;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(3, 33, 71, 0.28);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-card-in {
+  animation: fadeInUp 220ms ease-out;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+.typing-dot {
+  animation: typingDot 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
 
 .chat-markdown p {
   margin: 0.25em 0;
 }
-
 .chat-markdown ul,
 .chat-markdown ol {
   margin: 0.25em 0;
   padding-left: 1.25em;
 }
-
 .chat-markdown li {
   margin: 0.15em 0;
 }
-
 .chat-markdown strong {
   font-weight: 600;
 }
-
 .chat-markdown h1,
 .chat-markdown h2,
 .chat-markdown h3 {
   font-weight: 600;
   margin: 0.4em 0 0.2em;
 }
-
 .chat-markdown code {
   font-size: 0.85em;
   background: rgba(3, 33, 71, 0.06);
   padding: 0.1em 0.3em;
   border-radius: 4px;
+}
+.chat-markdown pre {
+  background: rgba(3, 33, 71, 0.06);
+  padding: 0.6em 0.75em;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.8em;
+  margin: 0.4em 0;
+}
+.chat-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.chat-markdown a {
+  color: var(--primary-blue);
+  text-decoration: underline;
 }

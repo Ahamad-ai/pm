@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -8,12 +8,14 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { KanbanColumn } from "@/components/KanbanColumn";
+import { KanbanColumn, type ColumnAccent } from "@/components/KanbanColumn";
 import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import { createId, initialData, moveCard, type BoardData } from "@/lib/kanban";
 
@@ -21,6 +23,14 @@ type KanbanBoardProps = {
   board?: BoardData;
   onBoardChange?: (board: BoardData) => void;
 };
+
+const COLUMN_ACCENTS: ColumnAccent[] = [
+  { dot: "#94a3b8", text: "text-slate-600", soft: "bg-slate-100" },
+  { dot: "#209dd7", text: "text-[var(--primary-blue)]", soft: "bg-sky-50" },
+  { dot: "#ecad0a", text: "text-[#a07000]", soft: "bg-amber-50" },
+  { dot: "#753991", text: "text-[var(--secondary-purple)]", soft: "bg-purple-50" },
+  { dot: "#16a34a", text: "text-emerald-600", soft: "bg-emerald-50" },
+];
 
 export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoardProps) => {
   const [internalBoard, setInternalBoard] = useState<BoardData>(() => initialData);
@@ -38,6 +48,29 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
   );
 
   const cardsById = useMemo(() => board.cards, [board.cards]);
+  const columnIdSet = useMemo(
+    () => new Set(board.columns.map((column) => column.id)),
+    [board.columns]
+  );
+
+  // closestCorners misses empty columns: neighboring columns' card corners can be
+  // closer than the empty column's section corners, so the drop never resolves to
+  // the empty column. pointer-within-first reliably picks the column the cursor is
+  // actually inside, while still preferring card collisions for in-column reorder.
+  const collisionDetection = useCallback<CollisionDetection>(
+    (args) => {
+      const pointerCollisions = pointerWithin(args);
+      if (pointerCollisions.length > 0) {
+        const cardCollisions = pointerCollisions.filter(
+          (collision) => !columnIdSet.has(String(collision.id))
+        );
+        return cardCollisions.length > 0 ? cardCollisions : pointerCollisions;
+      }
+      return rectIntersection(args);
+    },
+    [columnIdSet]
+  );
+
   const setBoard = (updater: (prev: BoardData) => BoardData) => {
     if (controlledBoard) {
       const nextBoard = updater(board);
@@ -137,64 +170,52 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
   };
 
   const activeCard = activeCardId ? cardsById[activeCardId] : null;
+  const activeAccent = activeCardId
+    ? (() => {
+        const columnIndex = board.columns.findIndex((column) =>
+          column.cardIds.includes(activeCardId)
+        );
+        return columnIndex >= 0
+          ? COLUMN_ACCENTS[columnIndex % COLUMN_ACCENTS.length]
+          : COLUMN_ACCENTS[0];
+      })()
+    : COLUMN_ACCENTS[0];
 
   return (
     <div className="relative overflow-hidden">
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {dragAnnouncement}
       </div>
-      <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,_rgba(32,157,215,0.25)_0%,_rgba(32,157,215,0.05)_55%,_transparent_70%)]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[520px] w-[520px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,_rgba(117,57,145,0.18)_0%,_rgba(117,57,145,0.05)_55%,_transparent_75%)]" />
+      <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,_rgba(32,157,215,0.22)_0%,_rgba(32,157,215,0.05)_55%,_transparent_70%)]" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-[520px] w-[520px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,_rgba(117,57,145,0.16)_0%,_rgba(117,57,145,0.05)_55%,_transparent_75%)]" />
 
-      <main className="relative mx-auto flex min-h-screen max-w-[1500px] flex-col gap-10 px-6 pb-16 pt-12">
-        <header className="flex flex-col gap-6 rounded-[32px] border border-[var(--stroke)] bg-white/80 p-8 shadow-[var(--shadow)] backdrop-blur">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">
-                Single Board Kanban
-              </p>
-              <h1 className="mt-3 font-display text-4xl font-semibold text-[var(--navy-dark)]">
-                Kanban Studio
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--gray-text)]">
-                Keep momentum visible. Rename columns, drag cards between stages,
-                and capture quick notes without getting buried in settings.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gray-text)]">
-                Focus
-              </p>
-              <p className="mt-2 text-lg font-semibold text-[var(--primary-blue)]">
-                One board. Five columns. Zero clutter.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            {board.columns.map((column) => (
-              <div
-                key={column.id}
-                className="flex items-center gap-2 rounded-full border border-[var(--stroke)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--navy-dark)]"
-              >
-                <span className="h-2 w-2 rounded-full bg-[var(--accent-yellow)]" />
-                {column.title}
-              </div>
-            ))}
-          </div>
+      <main className="relative mx-auto flex min-h-screen max-w-[1500px] flex-col gap-7 px-6 pb-16 pt-8">
+        <header className="flex flex-col gap-4 rounded-[28px] border border-[var(--stroke)] bg-white/80 p-7 shadow-[var(--shadow-soft)] backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">
+            Single Board Kanban
+          </p>
+          <h1 className="font-display text-4xl font-semibold text-[var(--navy-dark)]">
+            Kanban Studio
+          </h1>
+          <p className="max-w-2xl text-sm leading-6 text-[var(--gray-text)]">
+            Drag cards across stages, capture quick notes, and lean on the AI
+            assistant when you need a hand.
+          </p>
         </header>
 
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={collisionDetection}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <section className="grid gap-6 lg:grid-cols-5">
-            {board.columns.map((column) => (
+          <section className="grid gap-5 lg:grid-cols-5">
+            {board.columns.map((column, index) => (
               <KanbanColumn
                 key={column.id}
                 column={column}
                 cards={column.cardIds.map((cardId) => board.cards[cardId])}
+                accent={COLUMN_ACCENTS[index % COLUMN_ACCENTS.length]}
                 onRename={handleRenameColumn}
                 onAddCard={handleAddCard}
                 onDeleteCard={handleDeleteCard}
@@ -205,7 +226,7 @@ export const KanbanBoard = ({ board: controlledBoard, onBoardChange }: KanbanBoa
           <DragOverlay>
             {activeCard ? (
               <div className="w-[260px]">
-                <KanbanCardPreview card={activeCard} />
+                <KanbanCardPreview card={activeCard} accentColor={activeAccent.dot} />
               </div>
             ) : null}
           </DragOverlay>

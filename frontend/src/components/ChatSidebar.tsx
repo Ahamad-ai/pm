@@ -1,6 +1,14 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import clsx from "clsx";
+import {
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Markdown from "react-markdown";
 import type { ChatHistoryMessage } from "@/lib/boardApi";
 
@@ -11,6 +19,12 @@ type ChatSidebarProps = {
   onSend: (message: string) => Promise<void>;
 };
 
+const SUGGESTIONS = [
+  "Add a card in Backlog to draft the release notes.",
+  "Move the prototype card to In Progress.",
+  "Summarize the board for me.",
+];
+
 export const ChatSidebar = ({
   messages,
   isSending,
@@ -18,11 +32,19 @@ export const ChatSidebar = ({
   onSend,
 }: ChatSidebarProps) => {
   const [draft, setDraft] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const canSubmit = useMemo(
     () => !isSending && draft.trim().length > 0,
     [isSending, draft]
   );
+
+  useEffect(() => {
+    const node = messagesEndRef.current;
+    if (node && typeof node.scrollIntoView === "function") {
+      node.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length, isSending]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,34 +56,69 @@ export const ChatSidebar = ({
     await onSend(message);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (canSubmit) {
+        event.currentTarget.form?.requestSubmit();
+      }
+    }
+  };
+
   return (
-    <aside className="fixed inset-y-4 right-4 z-30 flex w-[360px] flex-col rounded-3xl border border-[var(--stroke)] bg-white/95 p-4 shadow-[var(--shadow)] backdrop-blur">
-      <div className="mb-3 border-b border-[var(--stroke)] pb-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gray-text)]">
-          AI Assistant
-        </p>
-        <h2 className="mt-2 font-display text-xl font-semibold text-[var(--navy-dark)]">
-          Chat
-        </h2>
-        <p className="mt-2 text-xs text-[var(--gray-text)]">
-          Ask to create, edit, or move cards.
-        </p>
+    <aside className="fixed bottom-4 right-4 top-16 z-30 flex w-[360px] flex-col rounded-3xl border border-[var(--stroke)] bg-white/95 p-4 shadow-[var(--shadow)] backdrop-blur">
+      <div className="mb-3 flex items-start justify-between gap-3 border-b border-[var(--stroke)] pb-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--gray-text)]">
+            AI Assistant
+          </p>
+          <h2 className="mt-1 font-display text-lg font-semibold text-[var(--navy-dark)]">
+            Chat
+          </h2>
+        </div>
+        <span
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--secondary-purple)]/10 text-[var(--secondary-purple)]"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+            <path d="M12 3a9 9 0 0 0-9 9c0 1.84.55 3.55 1.5 4.98L3 21l4.16-1.36A9 9 0 1 0 12 3zm-3.5 10a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
+          </svg>
+        </span>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1" data-testid="chat-messages">
+      <div
+        className="scroll-thin flex-1 space-y-3 overflow-y-auto pr-1"
+        data-testid="chat-messages"
+      >
         {messages.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[var(--stroke)] px-3 py-4 text-xs text-[var(--gray-text)]">
-            Try: "Add a card in Backlog to draft the release notes."
-          </p>
+          <div className="space-y-3">
+            <p className="rounded-2xl border border-dashed border-[var(--stroke)] bg-[var(--surface)] px-3 py-3 text-xs leading-5 text-[var(--gray-text)]">
+              Ask the assistant to create, edit, or rearrange cards. Try one of these to get started:
+            </p>
+            <div className="flex flex-col gap-2">
+              {SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => setDraft(suggestion)}
+                  className="rounded-2xl border border-[var(--stroke)] bg-white px-3 py-2 text-left text-xs leading-5 text-[var(--navy-dark)] transition hover:border-[var(--primary-blue)] hover:bg-[var(--primary-blue)]/5 hover:text-[var(--primary-blue)]"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : null}
+
         {messages.map((message, index) => (
           <div
             key={`${message.role}-${index}`}
-            className={
+            className={clsx(
+              "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-6",
               message.role === "user"
-                ? "ml-8 rounded-2xl bg-[var(--primary-blue)] px-3 py-2 text-sm text-white"
-                : "chat-markdown mr-8 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--navy-dark)]"
-            }
+                ? "ml-auto bg-[var(--primary-blue)] text-white shadow-[0_6px_14px_rgba(32,157,215,0.25)]"
+                : "chat-markdown mr-auto border border-[var(--stroke)] bg-[var(--surface)] text-[var(--navy-dark)]"
+            )}
           >
             {message.role === "assistant" ? (
               <Markdown>{message.content}</Markdown>
@@ -70,10 +127,20 @@ export const ChatSidebar = ({
             )}
           </div>
         ))}
+
+        {isSending ? (
+          <div className="mr-auto inline-flex items-center gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2.5">
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--gray-text)]" />
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--gray-text)]" />
+            <span className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--gray-text)]" />
+          </div>
+        ) : null}
+
+        <div ref={messagesEndRef} />
       </div>
 
       {error ? (
-        <p className="mt-3 rounded-xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--secondary-purple)]">
+        <p className="mt-3 rounded-xl border border-[var(--secondary-purple)]/20 bg-[var(--secondary-purple)]/5 px-3 py-2 text-xs font-semibold text-[var(--secondary-purple)]">
           {error}
         </p>
       ) : null}
@@ -82,15 +149,16 @@ export const ChatSidebar = ({
         <textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Ask the assistant..."
+          onKeyDown={handleKeyDown}
+          placeholder="Ask the assistant... (Enter to send, Shift+Enter for newline)"
           rows={3}
-          className="w-full resize-none rounded-2xl border border-[var(--stroke)] px-3 py-2 text-sm text-[var(--navy-dark)] outline-none focus:border-[var(--primary-blue)]"
+          className="scroll-thin w-full resize-none rounded-2xl border border-[var(--stroke)] bg-white px-3 py-2 text-sm text-[var(--navy-dark)] outline-none transition focus:border-[var(--primary-blue)] focus:ring-2 focus:ring-[var(--primary-blue)]/20"
           aria-label="Chat message"
         />
         <button
           type="submit"
           disabled={!canSubmit}
-          className="w-full rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-[0_8px_20px_rgba(117,57,145,0.25)] transition enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
         >
           {isSending ? "Sending..." : "Send"}
         </button>
