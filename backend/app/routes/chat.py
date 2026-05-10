@@ -31,12 +31,8 @@ async def _request_validated_structured_chat(
     message: str,
     conversation_history: list[dict[str, str]],
 ) -> StructuredAIResponse:
-    attempts = [
-        conversation_history,
-        [],
-    ]
     last_error: ValidationError | None = None
-    for history in attempts:
+    for history in (conversation_history, []):
         ai_payload = await request_structured_chat(
             api_key=api_key,
             board=board,
@@ -52,7 +48,6 @@ async def _request_validated_structured_chat(
                 exc,
             )
             last_error = exc
-            continue
     raise HTTPException(
         status_code=502,
         detail=f"OpenRouter response did not match required structured output: {last_error}",

@@ -13,14 +13,14 @@ type CalendarViewProps = {
   board: BoardData;
 };
 
-const isoDay = (date: Date): string => {
+function isoDay(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-};
+}
 
-const buildMonthGrid = (year: number, month: number): Date[] => {
+function buildMonthGrid(year: number, month: number): Date[] {
   const first = new Date(year, month, 1);
   const start = new Date(first);
   start.setDate(first.getDate() - first.getDay()); // Sunday start
@@ -31,15 +31,16 @@ const buildMonthGrid = (year: number, month: number): Date[] => {
     days.push(d);
   }
   return days;
-};
+}
 
-const monthLabel = (year: number, month: number): string =>
-  new Date(year, month, 1).toLocaleString(undefined, {
+function monthLabel(year: number, month: number): string {
+  return new Date(year, month, 1).toLocaleString(undefined, {
     month: "long",
     year: "numeric",
   });
+}
 
-export const CalendarView = ({ board }: CalendarViewProps) => {
+export function CalendarView({ board }: CalendarViewProps) {
   const today = new Date();
   const [cursor, setCursor] = useState<{ year: number; month: number }>({
     year: today.getFullYear(),
@@ -69,20 +70,14 @@ export const CalendarView = ({ board }: CalendarViewProps) => {
   const days = buildMonthGrid(cursor.year, cursor.month);
   const todayKey = isoDay(today);
 
-  const goPrev = () => {
+  const shiftMonth = (delta: number) => {
     setCursor((prev) => {
-      const month = prev.month === 0 ? 11 : prev.month - 1;
-      const year = prev.month === 0 ? prev.year - 1 : prev.year;
-      return { year, month };
+      const date = new Date(prev.year, prev.month + delta, 1);
+      return { year: date.getFullYear(), month: date.getMonth() };
     });
   };
-  const goNext = () => {
-    setCursor((prev) => {
-      const month = prev.month === 11 ? 0 : prev.month + 1;
-      const year = prev.month === 11 ? prev.year + 1 : prev.year;
-      return { year, month };
-    });
-  };
+  const goPrev = () => shiftMonth(-1);
+  const goNext = () => shiftMonth(1);
   const goToday = () => {
     const now = new Date();
     setCursor({ year: now.getFullYear(), month: now.getMonth() });
@@ -193,4 +188,4 @@ export const CalendarView = ({ board }: CalendarViewProps) => {
       ) : null}
     </div>
   );
-};
+}

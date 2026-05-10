@@ -59,7 +59,7 @@ const renderCommentBody = (body: string) =>
     )
   );
 
-export const CardDetailModal = ({
+export function CardDetailModal({
   card,
   columnTitle,
   canEdit,
@@ -69,7 +69,7 @@ export const CardDetailModal = ({
   onDelete,
   onClose,
   onJumpToCard,
-}: CardDetailModalProps) => {
+}: CardDetailModalProps) {
   const [titleDraft, setTitleDraft] = useState(card.title);
   const [detailsDraft, setDetailsDraft] = useState(card.details);
   const [editingDescription, setEditingDescription] = useState(false);
@@ -482,17 +482,14 @@ export const CardDetailModal = ({
               )}
               data-testid="card-modal-description"
             >
-              {card.details ? (
+              {card.details && (
                 <div className="text-[var(--gray-text)] [&_strong]:text-[var(--navy-dark)] [&_p]:mb-1 [&_p:last-child]:mb-0">
                   <Markdown>{card.details}</Markdown>
                 </div>
-              ) : canEdit ? (
+              )}
+              {!card.details && (
                 <span className="italic text-[var(--gray-text)]">
-                  Click to add a description.
-                </span>
-              ) : (
-                <span className="italic text-[var(--gray-text)]">
-                  No description.
+                  {canEdit ? "Click to add a description." : "No description."}
                 </span>
               )}
             </button>

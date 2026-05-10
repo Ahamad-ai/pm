@@ -23,21 +23,23 @@ type CardFilterBarProps = {
   onDeleteView?: (id: string) => Promise<void> | void;
 };
 
-const togglePill = <T extends string>(values: T[] | undefined, value: T): T[] => {
+function togglePill<T extends string>(values: T[] | undefined, value: T): T[] {
   const list = values ?? [];
   return list.includes(value)
     ? list.filter((entry) => entry !== value)
     : [...list, value];
-};
+}
 
-const isEmpty = (filter: CardFilter): boolean =>
-  !filter.query &&
-  !(filter.priorities && filter.priorities.length > 0) &&
-  !(filter.labels && filter.labels.length > 0) &&
-  !(filter.assignees && filter.assignees.length > 0) &&
-  !filter.overdueOnly;
+function isEmpty(filter: CardFilter): boolean {
+  if (filter.query) return false;
+  if (filter.priorities && filter.priorities.length > 0) return false;
+  if (filter.labels && filter.labels.length > 0) return false;
+  if (filter.assignees && filter.assignees.length > 0) return false;
+  if (filter.overdueOnly) return false;
+  return true;
+}
 
-export const CardFilterBar = ({
+export function CardFilterBar({
   filter,
   availableLabels,
   availableAssignees,
@@ -48,7 +50,7 @@ export const CardFilterBar = ({
   canEditViews,
   onSaveView,
   onDeleteView,
-}: CardFilterBarProps) => {
+}: CardFilterBarProps) {
   const [savePromptOpen, setSavePromptOpen] = useState(false);
   const [viewNameDraft, setViewNameDraft] = useState("");
   const handleClear = () => onChange({});
@@ -317,4 +319,4 @@ export const CardFilterBar = ({
       ) : null}
     </section>
   );
-};
+}

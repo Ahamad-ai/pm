@@ -27,6 +27,14 @@ from backend.app.schemas import (
 from backend.app.auth import create_token
 
 
+def _profile_response(user: dict) -> ProfileResponse:
+    return ProfileResponse(
+        username=user["username"],
+        display_name=user.get("display_name") or user["username"],
+        role=user.get("role") or "member",
+    )
+
+
 def create_router(db_path: Path) -> APIRouter:
     router = APIRouter()
 
@@ -39,11 +47,7 @@ def create_router(db_path: Path) -> APIRouter:
         user = get_user(username, db_path)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found.")
-        return ProfileResponse(
-            username=user["username"],
-            display_name=user.get("display_name") or user["username"],
-            role=user.get("role") or "member",
-        )
+        return _profile_response(user)
 
     @router.put("/api/users/me", response_model=ProfileResponse)
     def update_me(
@@ -59,11 +63,7 @@ def create_router(db_path: Path) -> APIRouter:
         user = get_user(username, db_path)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found.")
-        return ProfileResponse(
-            username=user["username"],
-            display_name=user.get("display_name") or user["username"],
-            role=user.get("role") or "member",
-        )
+        return _profile_response(user)
 
     @router.get(
         "/api/users/me/tasks",

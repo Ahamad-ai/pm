@@ -8,8 +8,7 @@ def require_username(
     x_username: str | None = None,
 ) -> str:
     if authorization and authorization.startswith("Bearer "):
-        token = authorization[7:]
-        return verify_token(token)
+        return verify_token(authorization.removeprefix("Bearer "))
     if x_username and x_username.strip():
         return x_username.strip()
     raise HTTPException(

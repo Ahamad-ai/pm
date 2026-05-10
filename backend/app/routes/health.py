@@ -11,11 +11,10 @@ def create_router(db_path: Path) -> APIRouter:
     @router.get("/health")
     def health() -> dict[str, str]:
         try:
-            conn = get_connection(db_path)
-            conn.execute("SELECT 1")
-            conn.close()
-        except Exception:
-            raise HTTPException(status_code=503, detail="Database unavailable.")
+            with get_connection(db_path) as conn:
+                conn.execute("SELECT 1")
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail="Database unavailable.") from exc
         return {"status": "ok"}
 
     @router.get("/api/hello")

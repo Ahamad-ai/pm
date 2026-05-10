@@ -45,11 +45,20 @@ type BackendKanbanBoardProps = {
   onLogout?: () => void;
 };
 
-export const BackendKanbanBoard = ({
+function isAuthFailureError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "isAuthFailure" in err &&
+    Boolean((err as { isAuthFailure?: boolean }).isAuthFailure)
+  );
+}
+
+export function BackendKanbanBoard({
   username,
   displayName,
   onLogout,
-}: BackendKanbanBoardProps) => {
+}: BackendKanbanBoardProps) {
   const [boards, setBoards] = useState<BoardSummary[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
   const [board, setBoard] = useState<BoardData | null>(null);
@@ -183,11 +192,7 @@ export const BackendKanbanBoard = ({
         persistActiveBoardId(initial.id);
         setRecentBoardIds(recordRecentBoard(username, initial.id));
       } catch (err) {
-        const isAuthFailure =
-          err && typeof err === "object" && "isAuthFailure" in err
-            ? Boolean((err as { isAuthFailure?: boolean }).isAuthFailure)
-            : false;
-        if (isAuthFailure && onLogout) {
+        if (isAuthFailureError(err) && onLogout) {
           // Stale session: drop it and bounce back to the login screen.
           onLogout();
           return;
@@ -669,4 +674,4 @@ export const BackendKanbanBoard = ({
       )}
     </>
   );
-};
+}

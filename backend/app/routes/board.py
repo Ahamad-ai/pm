@@ -3,7 +3,6 @@ from pathlib import Path
 from fastapi import APIRouter, Header, HTTPException
 
 from backend.app.board_service import get_or_create_board_for_user, save_board_for_user
-from backend.app.db import record_activity
 from backend.app.dependencies import require_username
 from backend.app.schemas import BoardModel, BoardResponse
 

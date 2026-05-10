@@ -15,6 +15,20 @@ from backend.app.schemas import (
 from backend.app.templates import get_template_board, list_templates
 
 
+def _detail_response(username: str, record: dict) -> BoardDetailResponse:
+    return BoardDetailResponse(
+        username=username,
+        id=int(record["id"]),
+        name=record["name"],
+        position=int(record["position"]),
+        board=BoardModel.model_validate(record["board"]),
+        role=record.get("role", "owner"),
+        owner=record.get("owner"),
+        created_at=record.get("created_at"),
+        updated_at=record.get("updated_at"),
+    )
+
+
 def create_router(db_path: Path) -> APIRouter:
     router = APIRouter()
 
@@ -65,16 +79,6 @@ def create_router(db_path: Path) -> APIRouter:
         record = get_board_for_user_by_id(username, created["id"], db_path)
         if record is None:
             raise HTTPException(status_code=500, detail="Board missing after template create.")
-        return BoardDetailResponse(
-            username=username,
-            id=int(record["id"]),
-            name=record["name"],
-            position=int(record["position"]),
-            board=BoardModel.model_validate(record["board"]),
-            role=record.get("role", "owner"),
-            owner=record.get("owner"),
-            created_at=record.get("created_at"),
-            updated_at=record.get("updated_at"),
-        )
+        return _detail_response(username, record)
 
     return router

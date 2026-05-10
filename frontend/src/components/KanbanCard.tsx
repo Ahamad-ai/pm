@@ -30,7 +30,7 @@ type KanbanCardProps = {
   onToggleSelect?: (cardId: string) => void;
 };
 
-const formatDate = (iso: string): string => {
+function formatDate(iso: string): string {
   const date = new Date(`${iso}T00:00:00`);
   if (Number.isNaN(date.getTime())) {
     return iso;
@@ -39,9 +39,9 @@ const formatDate = (iso: string): string => {
     month: "short",
     day: "numeric",
   });
-};
+}
 
-export const KanbanCard = ({
+export function KanbanCard({
   card,
   accentColor,
   canEdit = true,
@@ -52,7 +52,7 @@ export const KanbanCard = ({
   onEdit,
   onOpen,
   onToggleSelect,
-}: KanbanCardProps) => {
+}: KanbanCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newCommentBody, setNewCommentBody] = useState("");
@@ -582,4 +582,4 @@ export const KanbanCard = ({
       )}
     </article>
   );
-};
+}

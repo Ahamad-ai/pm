@@ -46,7 +46,7 @@ type KanbanBoardProps = {
   onBoardChange?: (board: BoardData) => void;
 };
 
-const AddColumnTile = ({ onAdd }: { onAdd: (title: string) => void }) => {
+function AddColumnTile({ onAdd }: { onAdd: (title: string) => void }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   return (
@@ -106,7 +106,7 @@ const AddColumnTile = ({ onAdd }: { onAdd: (title: string) => void }) => {
       )}
     </section>
   );
-};
+}
 
 const COLUMN_ACCENTS: ColumnAccent[] = [
   { dot: "#94a3b8", text: "text-slate-600", soft: "bg-slate-100" },
@@ -116,12 +116,12 @@ const COLUMN_ACCENTS: ColumnAccent[] = [
   { dot: "#16a34a", text: "text-emerald-600", soft: "bg-emerald-50" },
 ];
 
-export const KanbanBoard = ({
+export function KanbanBoard({
   board: controlledBoard,
   canEdit = true,
   currentUser,
   onBoardChange,
-}: KanbanBoardProps) => {
+}: KanbanBoardProps) {
   const [internalBoard, setInternalBoard] = useState<BoardData>(() => initialData);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [dragAnnouncement, setDragAnnouncement] = useState("");
@@ -720,4 +720,4 @@ export const KanbanBoard = ({
       ) : null}
     </div>
   );
-};
+}

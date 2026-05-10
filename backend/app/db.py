@@ -7,7 +7,7 @@ import secrets
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "pm.sqlite3"
@@ -48,6 +48,24 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def _safe_json_loads(value: Any) -> Any:
+    if not value:
+        return None
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return None
+
+
+def _column_title_by_card_id(board: dict[str, Any]) -> dict[str, str]:
+    """Return a card_id -> column.title lookup for the given board."""
+    return {
+        card_id: column["title"]
+        for column in board["columns"]
+        for card_id in column["cardIds"]
+    }
+
+
 def get_connection(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -63,13 +81,11 @@ def _table_columns(connection: sqlite3.Connection, table: str) -> list[str]:
 
 
 def _has_unique_index_on_user_id(connection: sqlite3.Connection) -> bool:
-    indexes = connection.execute("PRAGMA index_list(boards)").fetchall()
-    for index in indexes:
+    for index in connection.execute("PRAGMA index_list(boards)").fetchall():
         if not index["unique"]:
             continue
         info = connection.execute(f"PRAGMA index_info({index['name']})").fetchall()
-        cols = [row["name"] for row in info]
-        if cols == ["user_id"]:
+        if [row["name"] for row in info] == ["user_id"]:
             return True
     return False
 
@@ -638,9 +654,9 @@ def _validate_board_data(board: Any) -> dict[str, Any]:
             seen_ids.add(sanitized["id"])
             sanitized_views.append(sanitized)
 
-    sanitized_cards: dict[str, Any] = {}
-    for card_id, card in cards.items():
-        sanitized_cards[card_id] = _validate_card(card_id, card)
+    sanitized_cards: dict[str, Any] = {
+        card_id: _validate_card(card_id, card) for card_id, card in cards.items()
+    }
 
     # Cross-reference link integrity: drop links that point to missing cards.
     for card_id, sanitized_card in sanitized_cards.items():
@@ -1119,10 +1135,7 @@ def update_board_for_user(
         ).fetchone()
         if existing is None:
             raise ValueError("board not found")
-        try:
-            old_board_payload = json.loads(existing["board_json"])
-        except (json.JSONDecodeError, TypeError):
-            old_board_payload = {"columns": [], "cards": {}}
+        old_board_payload = _safe_json_loads(existing["board_json"]) or {"columns": [], "cards": {}}
 
         sets: list[str] = []
         params: list[Any] = []
@@ -1267,24 +1280,16 @@ def list_activity_for_board(
             """,
             (int(board_id), safe_limit),
         ).fetchall()
-    results: list[dict[str, Any]] = []
-    for row in rows:
-        details: Any = None
-        if row["details"]:
-            try:
-                details = json.loads(row["details"])
-            except json.JSONDecodeError:
-                details = None
-        results.append(
-            {
-                "id": int(row["id"]),
-                "action": row["action"],
-                "details": details,
-                "created_at": row["created_at"],
-                "username": row["username"],
-            }
-        )
-    return results
+    return [
+        {
+            "id": int(row["id"]),
+            "action": row["action"],
+            "details": _safe_json_loads(row["details"]),
+            "created_at": row["created_at"],
+            "username": row["username"],
+        }
+        for row in rows
+    ]
 
 
 # ---------------- Collaborators ----------------
@@ -1625,25 +1630,17 @@ def list_notifications(
         sql += " ORDER BY id DESC LIMIT ?"
         params.append(safe_limit)
         rows = connection.execute(sql, params).fetchall()
-    results: list[dict[str, Any]] = []
-    for row in rows:
-        details: Any = None
-        if row["payload"]:
-            try:
-                details = json.loads(row["payload"])
-            except json.JSONDecodeError:
-                details = None
-        results.append(
-            {
-                "id": int(row["id"]),
-                "kind": row["kind"],
-                "board_id": row["board_id"],
-                "payload": details,
-                "read_at": row["read_at"],
-                "created_at": row["created_at"],
-            }
-        )
-    return results
+    return [
+        {
+            "id": int(row["id"]),
+            "kind": row["kind"],
+            "board_id": row["board_id"],
+            "payload": _safe_json_loads(row["payload"]),
+            "read_at": row["read_at"],
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
 
 
 def count_unread_notifications(
@@ -1847,10 +1844,7 @@ def search_user_content(
         record = get_board_for_user_by_id(cleaned_user, summary["id"], db_path)
         if record is None:
             continue
-        column_for_card: dict[str, str] = {}
-        for column in record["board"]["columns"]:
-            for card_id in column["cardIds"]:
-                column_for_card[card_id] = column["title"]
+        column_for_card = _column_title_by_card_id(record["board"])
         for card in record["board"]["cards"].values():
             if card.get("archived"):
                 continue
@@ -1922,11 +1916,7 @@ def list_user_tasks(
             continue
         board_name = record["name"]
         board_id = int(record["id"])
-        # Map column id -> title for context.
-        column_for_card: dict[str, str] = {}
-        for column in record["board"]["columns"]:
-            for card_id in column["cardIds"]:
-                column_for_card[card_id] = column["title"]
+        column_for_card = _column_title_by_card_id(record["board"])
         for card in record["board"]["cards"].values():
             if card.get("archived"):
                 continue

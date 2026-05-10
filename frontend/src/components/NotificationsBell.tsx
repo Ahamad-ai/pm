@@ -15,7 +15,7 @@ type NotificationsBellProps = {
   onJumpToBoard?: (boardId: number) => void;
 };
 
-const formatTime = (iso: string | null | undefined): string => {
+function formatTime(iso: string | null | undefined): string {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) {
@@ -27,9 +27,9 @@ const formatTime = (iso: string | null | undefined): string => {
     hour: "numeric",
     minute: "2-digit",
   });
-};
+}
 
-const formatNotification = (n: Notification): string => {
+function formatNotification(n: Notification): string {
   const payload = (n.payload ?? {}) as Record<string, string>;
   if (n.kind === "mention") {
     const card = payload.card_title ?? "a card";
@@ -49,13 +49,13 @@ const formatNotification = (n: Notification): string => {
     return `"${card}" in ${where} assigned to you`;
   }
   return n.kind;
-};
+}
 
-export const NotificationsBell = ({
+export function NotificationsBell({
   username,
   refreshKey,
   onJumpToBoard,
-}: NotificationsBellProps) => {
+}: NotificationsBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -194,15 +194,17 @@ export const NotificationsBell = ({
               </button>
             ) : null}
           </div>
-          {error ? (
+          {error && (
             <p className="text-xs text-[var(--secondary-purple)]" role="alert">
               {error}
             </p>
-          ) : notifications.length === 0 ? (
+          )}
+          {!error && notifications.length === 0 && (
             <p className="text-xs text-[var(--gray-text)]">
               No notifications yet.
             </p>
-          ) : (
+          )}
+          {!error && notifications.length > 0 && (
             <ul className="max-h-80 space-y-1 overflow-y-auto">
               {notifications.map((notification) => {
                 const isUnread = !notification.read_at;
@@ -234,4 +236,4 @@ export const NotificationsBell = ({
       ) : null}
     </div>
   );
-};
+}

@@ -32,7 +32,7 @@ type NewCardFormProps = {
   accentColor?: string;
 };
 
-export const NewCardForm = ({ onAdd, accentColor = "var(--primary-blue)" }: NewCardFormProps) => {
+export function NewCardForm({ onAdd, accentColor = "var(--primary-blue)" }: NewCardFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [formState, setFormState] = useState(initialFormState);
 
@@ -153,4 +153,4 @@ export const NewCardForm = ({ onAdd, accentColor = "var(--primary-blue)" }: NewC
       )}
     </div>
   );
-};
+}

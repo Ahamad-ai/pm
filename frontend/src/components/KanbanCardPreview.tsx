@@ -6,7 +6,10 @@ type KanbanCardPreviewProps = {
   accentColor?: string;
 };
 
-export const KanbanCardPreview = ({ card, accentColor = "#209dd7" }: KanbanCardPreviewProps) => {
+export function KanbanCardPreview({
+  card,
+  accentColor = "#209dd7",
+}: KanbanCardPreviewProps) {
   const style: CSSProperties = { borderLeftColor: accentColor };
   return (
     <article
@@ -19,4 +22,4 @@ export const KanbanCardPreview = ({ card, accentColor = "#209dd7" }: KanbanCardP
       <p className="mt-1.5 text-[13px] leading-6 text-[var(--gray-text)]">{card.details}</p>
     </article>
   );
-};
+}

@@ -13,7 +13,7 @@ type MyTasksPanelProps = {
   refreshKey?: number;
 };
 
-const formatDue = (task: UserTask): string => {
+function formatDue(task: UserTask): string {
   if (!task.due_date) return "No due date";
   if (task.overdue) return `Overdue · ${task.due_date}`;
   if (task.due_in_days === 0) return "Due today";
@@ -22,15 +22,23 @@ const formatDue = (task: UserTask): string => {
     return `Due in ${task.due_in_days} days`;
   }
   return `Due ${task.due_date}`;
-};
+}
 
-export const MyTasksPanel = ({
+function dueChipClass(task: UserTask): string {
+  if (task.overdue) return "bg-[#fee2e2] text-[#b91c1c]";
+  if (task.due_in_days != null && task.due_in_days <= 3) {
+    return "bg-[var(--accent-yellow)]/15 text-[#a07000]";
+  }
+  return "bg-[var(--surface-muted)] text-[var(--gray-text)]";
+}
+
+export function MyTasksPanel({
   username,
   isOpen,
   onClose,
   onJumpToBoard,
   refreshKey,
-}: MyTasksPanelProps) => {
+}: MyTasksPanelProps) {
   const [tasks, setTasks] = useState<UserTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,14 +129,17 @@ export const MyTasksPanel = ({
       ) : null}
 
       <div className="mt-4 max-h-[60vh] space-y-2 overflow-y-auto">
-        {isLoading ? (
+        {isLoading && (
           <p className="text-xs text-[var(--gray-text)]">Loading…</p>
-        ) : tasks.length === 0 ? (
+        )}
+        {!isLoading && tasks.length === 0 && (
           <p className="text-xs text-[var(--gray-text)]">
             Nothing assigned to you. Set a card&apos;s assignee to your username
             to see it here.
           </p>
-        ) : (
+        )}
+        {!isLoading &&
+          tasks.length > 0 &&
           tasks.map((task) => (
             <button
               key={`${task.board_id}-${task.card_id}`}
@@ -162,19 +173,14 @@ export const MyTasksPanel = ({
               <span
                 className={clsx(
                   "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em]",
-                  task.overdue
-                    ? "bg-[#fee2e2] text-[#b91c1c]"
-                    : task.due_in_days != null && task.due_in_days <= 3
-                    ? "bg-[var(--accent-yellow)]/15 text-[#a07000]"
-                    : "bg-[var(--surface-muted)] text-[var(--gray-text)]"
+                  dueChipClass(task)
                 )}
               >
                 {formatDue(task)}
               </span>
             </button>
-          ))
-        )}
+          ))}
       </div>
     </aside>
   );
-};
+}

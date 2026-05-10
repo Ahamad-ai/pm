@@ -21,7 +21,7 @@ type CollaboratorsModalProps = {
   onChange?: () => void;
 };
 
-export const CollaboratorsModal = ({
+export function CollaboratorsModal({
   username,
   boardId,
   boardName,
@@ -29,7 +29,7 @@ export const CollaboratorsModal = ({
   isOwner,
   onClose,
   onChange,
-}: CollaboratorsModalProps) => {
+}: CollaboratorsModalProps) {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -200,13 +200,15 @@ export const CollaboratorsModal = ({
         ) : null}
 
         <ul className="mt-4 max-h-64 space-y-2 overflow-y-auto" data-testid="collaborator-list">
-          {isLoading ? (
+          {isLoading && (
             <li className="text-xs text-[var(--gray-text)]">Loading…</li>
-          ) : collaborators.length === 0 ? (
+          )}
+          {!isLoading && collaborators.length === 0 && (
             <li className="text-xs text-[var(--gray-text)]">
               No collaborators yet.
             </li>
-          ) : (
+          )}
+          {!isLoading &&
             collaborators.map((collab) => (
               <li
                 key={collab.username}
@@ -235,8 +237,7 @@ export const CollaboratorsModal = ({
                   </button>
                 ) : null}
               </li>
-            ))
-          )}
+            ))}
         </ul>
 
         {isOwner ? (
@@ -337,4 +338,4 @@ export const CollaboratorsModal = ({
       </div>
     </div>
   );
-};
+}

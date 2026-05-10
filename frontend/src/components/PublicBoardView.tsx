@@ -22,7 +22,7 @@ type PublicBoardViewProps = {
 
 const COLUMN_DOTS = ["#94a3b8", "#209dd7", "#ecad0a", "#753991", "#16a34a"];
 
-const formatDate = (iso: string | undefined): string => {
+function formatDate(iso: string | undefined): string {
   if (!iso) return "";
   const date = new Date(`${iso}T00:00:00`);
   if (Number.isNaN(date.getTime())) {
@@ -32,9 +32,9 @@ const formatDate = (iso: string | undefined): string => {
     month: "short",
     day: "numeric",
   });
-};
+}
 
-const ReadOnlyCard = ({ card }: { card: Card }) => {
+function ReadOnlyCard({ card }: { card: Card }) {
   const overdue = isOverdue(card.dueDate);
   const progress = subtaskProgress(card);
   return (
@@ -106,9 +106,9 @@ const ReadOnlyCard = ({ card }: { card: Card }) => {
       ) : null}
     </article>
   );
-};
+}
 
-const ReadOnlyColumn = ({
+function ReadOnlyColumn({
   column,
   cards,
   accent,
@@ -116,7 +116,7 @@ const ReadOnlyColumn = ({
   column: Column;
   cards: Record<string, Card>;
   accent: string;
-}) => {
+}) {
   const visibleIds = visibleCardIds(column, cards);
   return (
     <section
@@ -151,14 +151,14 @@ const ReadOnlyColumn = ({
       </div>
     </section>
   );
-};
+}
 
-export const PublicBoardView = ({
+export function PublicBoardView({
   name,
   owner,
   updatedAt,
   board,
-}: PublicBoardViewProps) => {
+}: PublicBoardViewProps) {
   const totalActive = Object.values(board.cards).filter(
     (card) => !isCardArchived(card)
   ).length;
@@ -212,4 +212,4 @@ export const PublicBoardView = ({
       </main>
     </div>
   );
-};
+}

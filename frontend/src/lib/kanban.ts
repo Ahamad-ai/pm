@@ -122,21 +122,22 @@ export const emptyBoard: BoardData = {
   cards: {},
 };
 
-const isColumnId = (columns: Column[], id: string) =>
-  columns.some((column) => column.id === id);
+function isColumnId(columns: Column[], id: string): boolean {
+  return columns.some((column) => column.id === id);
+}
 
-const findColumnId = (columns: Column[], id: string) => {
+function findColumnId(columns: Column[], id: string): string | undefined {
   if (isColumnId(columns, id)) {
     return id;
   }
   return columns.find((column) => column.cardIds.includes(id))?.id;
-};
+}
 
-export const moveCard = (
+export function moveCard(
   columns: Column[],
   activeId: string,
   overId: string
-): Column[] => {
+): Column[] {
   const activeColumnId = findColumnId(columns, activeId);
   const overColumnId = findColumnId(columns, overId);
 
@@ -210,27 +211,31 @@ export const moveCard = (
     }
     return column;
   });
-};
+}
 
-export const createId = (prefix: string) =>
-  `${prefix}-${crypto.randomUUID()}`;
+export function createId(prefix: string): string {
+  return `${prefix}-${crypto.randomUUID()}`;
+}
 
 const COLUMN_HANDLE_PREFIX = "col-handle:";
 
 /** A column section is both a droppable and a sortable; dnd-kit may resolve
  * over.id to either form. Normalize back to the column id. */
-export const normalizeDropTargetId = (id: string): string =>
-  id.startsWith(COLUMN_HANDLE_PREFIX)
+export function normalizeDropTargetId(id: string): string {
+  return id.startsWith(COLUMN_HANDLE_PREFIX)
     ? id.slice(COLUMN_HANDLE_PREFIX.length)
     : id;
+}
 
-export const isColumnHandleId = (id: string): boolean =>
-  id.startsWith(COLUMN_HANDLE_PREFIX);
+export function isColumnHandleId(id: string): boolean {
+  return id.startsWith(COLUMN_HANDLE_PREFIX);
+}
 
-export const columnIdFromHandle = (id: string): string | null =>
-  id.startsWith(COLUMN_HANDLE_PREFIX)
+export function columnIdFromHandle(id: string): string | null {
+  return id.startsWith(COLUMN_HANDLE_PREFIX)
     ? id.slice(COLUMN_HANDLE_PREFIX.length)
     : null;
+}
 
 export const PRIORITY_ORDER: CardPriority[] = [
   "urgent",
@@ -253,18 +258,18 @@ export const PRIORITY_DOT: Record<CardPriority, string> = {
   low: "#94a3b8",
 };
 
-export const isOverdue = (dueDate: string | undefined): boolean => {
+export function isOverdue(dueDate: string | undefined): boolean {
   if (!dueDate) {
     return false;
   }
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   const due = new Date(`${dueDate}T00:00:00`);
   if (Number.isNaN(due.getTime())) {
     return false;
   }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return due.getTime() < today.getTime();
-};
+}
 
 export type CardFilter = {
   query?: string;
@@ -274,16 +279,16 @@ export type CardFilter = {
   overdueOnly?: boolean;
 };
 
-const isFilterActive = (filter: CardFilter): boolean =>
-  Boolean(
-    (filter.query && filter.query.trim()) ||
-      (filter.priorities && filter.priorities.length > 0) ||
-      (filter.assignees && filter.assignees.length > 0) ||
-      (filter.labels && filter.labels.length > 0) ||
-      filter.overdueOnly
-  );
+function isFilterActive(filter: CardFilter): boolean {
+  if (filter.query && filter.query.trim()) return true;
+  if (filter.priorities && filter.priorities.length > 0) return true;
+  if (filter.assignees && filter.assignees.length > 0) return true;
+  if (filter.labels && filter.labels.length > 0) return true;
+  if (filter.overdueOnly) return true;
+  return false;
+}
 
-export const matchesFilter = (card: Card, filter: CardFilter): boolean => {
+export function matchesFilter(card: Card, filter: CardFilter): boolean {
   if (!isFilterActive(filter)) {
     return true;
   }
@@ -294,7 +299,7 @@ export const matchesFilter = (card: Card, filter: CardFilter): boolean => {
       card.details,
       card.assignee ?? "",
       ...(card.labels ?? []),
-      ...((card.subtasks ?? []).map((s) => s.title)),
+      ...(card.subtasks ?? []).map((subtask) => subtask.title),
     ]
       .join(" ")
       .toLowerCase();
@@ -331,12 +336,12 @@ export const matchesFilter = (card: Card, filter: CardFilter): boolean => {
   }
 
   return true;
-};
+}
 
-export const filteredCardIds = (
+export function filteredCardIds(
   board: BoardData,
   filter: CardFilter
-): Set<string> => {
+): Set<string> {
   if (!isFilterActive(filter)) {
     return new Set(Object.keys(board.cards));
   }
@@ -347,9 +352,9 @@ export const filteredCardIds = (
     }
   }
   return matching;
-};
+}
 
-export const collectBoardLabels = (board: BoardData): string[] => {
+export function collectBoardLabels(board: BoardData): string[] {
   const labels = new Set<string>();
   for (const card of Object.values(board.cards)) {
     for (const label of card.labels ?? []) {
@@ -357,9 +362,9 @@ export const collectBoardLabels = (board: BoardData): string[] => {
     }
   }
   return Array.from(labels).sort();
-};
+}
 
-export const collectBoardAssignees = (board: BoardData): string[] => {
+export function collectBoardAssignees(board: BoardData): string[] {
   const assignees = new Set<string>();
   for (const card of Object.values(board.cards)) {
     if (card.assignee) {
@@ -367,20 +372,26 @@ export const collectBoardAssignees = (board: BoardData): string[] => {
     }
   }
   return Array.from(assignees).sort();
-};
+}
 
-export const isCardArchived = (card: Card): boolean => card.archived === true;
+export function isCardArchived(card: Card): boolean {
+  return card.archived === true;
+}
 
-export const visibleCardIds = (column: Column, cards: Record<string, Card>): string[] =>
-  column.cardIds.filter((id) => {
+export function visibleCardIds(
+  column: Column,
+  cards: Record<string, Card>
+): string[] {
+  return column.cardIds.filter((id) => {
     const card = cards[id];
     return card !== undefined && !isCardArchived(card);
   });
+}
 
-export const wipState = (
+export function wipState(
   column: Column,
   visibleCount: number
-): "none" | "near" | "exceeded" => {
+): "none" | "near" | "exceeded" {
   const limit = column.wipLimit;
   if (!limit || limit <= 0) {
     return "none";
@@ -392,7 +403,7 @@ export const wipState = (
     return "near";
   }
   return "none";
-};
+}
 
 export type MentionSegment =
   | { kind: "text"; value: string }
@@ -401,7 +412,7 @@ export type MentionSegment =
 // Username starts and ends in [A-Za-z0-9_], may contain `.`/`-`/`@` in the middle.
 const MENTION_RE = /@([A-Za-z0-9_](?:[A-Za-z0-9_.\-@]*[A-Za-z0-9_])?)/g;
 
-export const parseMentions = (body: string): MentionSegment[] => {
+export function parseMentions(body: string): MentionSegment[] {
   if (!body) {
     return [];
   }
@@ -419,41 +430,45 @@ export const parseMentions = (body: string): MentionSegment[] => {
     segments.push({ kind: "text", value: body.slice(lastIndex) });
   }
   return segments;
-};
+}
 
-export const extractMentions = (body: string): string[] => {
+export function extractMentions(body: string): string[] {
   const seen = new Set<string>();
   for (const match of body.matchAll(MENTION_RE)) {
     seen.add(match[1]);
   }
   return Array.from(seen);
-};
+}
 
-export const totalTrackedSeconds = (card: Card): number => {
+function secondsForEntry(entry: TimeEntry): number {
+  if (entry.endedAt) {
+    if (typeof entry.seconds === "number" && entry.seconds >= 0) {
+      return entry.seconds;
+    }
+    const started = Date.parse(entry.startedAt);
+    const ended = Date.parse(entry.endedAt);
+    if (Number.isFinite(started) && Number.isFinite(ended) && ended > started) {
+      return Math.floor((ended - started) / 1000);
+    }
+    return 0;
+  }
+  const started = Date.parse(entry.startedAt);
+  if (!Number.isFinite(started)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor((Date.now() - started) / 1000));
+}
+
+export function totalTrackedSeconds(card: Card): number {
   const entries = card.timeEntries ?? [];
   let total = 0;
   for (const entry of entries) {
-    if (entry.endedAt) {
-      if (typeof entry.seconds === "number" && entry.seconds >= 0) {
-        total += entry.seconds;
-      } else {
-        const started = Date.parse(entry.startedAt);
-        const ended = Date.parse(entry.endedAt);
-        if (Number.isFinite(started) && Number.isFinite(ended) && ended > started) {
-          total += Math.floor((ended - started) / 1000);
-        }
-      }
-    } else {
-      const started = Date.parse(entry.startedAt);
-      if (Number.isFinite(started)) {
-        total += Math.max(0, Math.floor((Date.now() - started) / 1000));
-      }
-    }
+    total += secondsForEntry(entry);
   }
   return total;
-};
+}
 
-export const formatDuration = (totalSeconds: number): string => {
+export function formatDuration(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
     return "0m";
   }
@@ -466,21 +481,21 @@ export const formatDuration = (totalSeconds: number): string => {
     return `${hours}h`;
   }
   return `${minutes}m`;
-};
+}
 
-export const openTimeEntry = (card: Card): TimeEntry | null => {
+export function openTimeEntry(card: Card): TimeEntry | null {
   return (card.timeEntries ?? []).find((entry) => !entry.endedAt) ?? null;
-};
+}
 
-export const subtaskProgress = (
+export function subtaskProgress(
   card: Card
-): { done: number; total: number } | null => {
+): { done: number; total: number } | null {
   const subtasks = card.subtasks ?? [];
   if (subtasks.length === 0) {
     return null;
   }
   return {
-    done: subtasks.filter((s) => s.done).length,
+    done: subtasks.filter((subtask) => subtask.done).length,
     total: subtasks.length,
   };
-};
+}

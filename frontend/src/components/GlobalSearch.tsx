@@ -14,10 +14,10 @@ type GlobalSearchProps = {
   onJumpToBoard?: (boardId: number) => void;
 };
 
-export const GlobalSearch = ({
+export function GlobalSearch({
   username,
   onJumpToBoard,
-}: GlobalSearchProps) => {
+}: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [boards, setBoards] = useState<SearchBoardHit[]>([]);
@@ -198,4 +198,4 @@ export const GlobalSearch = ({
       ) : null}
     </div>
   );
-};
+}

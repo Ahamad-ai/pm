@@ -14,7 +14,14 @@ import {
 
 type Mode = "signin" | "register";
 
-export const AuthShell = () => {
+function submitButtonLabel(mode: Mode, isSubmitting: boolean): string {
+  if (isSubmitting) {
+    return mode === "register" ? "Creating account..." : "Signing in...";
+  }
+  return mode === "register" ? "Create account" : "Sign in";
+}
+
+export function AuthShell() {
   const [mode, setMode] = useState<Mode>("signin");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -250,13 +257,7 @@ export const AuthShell = () => {
               disabled={isSubmitting}
               className="w-full rounded-full bg-[var(--secondary-purple)] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-[0_8px_20px_rgba(117,57,145,0.30)] transition hover:brightness-110 disabled:opacity-60"
             >
-              {isSubmitting
-                ? isRegister
-                  ? "Creating account..."
-                  : "Signing in..."
-                : isRegister
-                ? "Create account"
-                : "Sign in"}
+              {submitButtonLabel(mode, isSubmitting)}
             </button>
           </form>
           <p className="mt-6 text-center text-xs text-[var(--gray-text)]">
@@ -273,4 +274,4 @@ export const AuthShell = () => {
       </section>
     </main>
   );
-};
+}

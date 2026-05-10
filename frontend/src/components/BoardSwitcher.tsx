@@ -21,7 +21,7 @@ type BoardSwitcherProps = {
   onTogglePin?: (boardId: number, pinned: boolean) => Promise<void> | void;
 };
 
-export const BoardSwitcher = ({
+export function BoardSwitcher({
   boards,
   activeBoardId,
   isLoading,
@@ -33,7 +33,7 @@ export const BoardSwitcher = ({
   onRename,
   onDelete,
   onTogglePin,
-}: BoardSwitcherProps) => {
+}: BoardSwitcherProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [editingBoardId, setEditingBoardId] = useState<number | null>(null);
@@ -43,6 +43,15 @@ export const BoardSwitcher = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) ?? null;
+
+  let triggerLabel: string;
+  if (activeBoard) {
+    triggerLabel = activeBoard.name;
+  } else if (isLoading) {
+    triggerLabel = "Loading...";
+  } else {
+    triggerLabel = "No board";
+  }
 
   useEffect(() => {
     if (!showMenu) {
@@ -125,9 +134,7 @@ export const BoardSwitcher = ({
         data-testid="board-switcher-trigger"
       >
         <span className="inline-flex h-2 w-2 rounded-full bg-[var(--accent-yellow)]" />
-        <span className="max-w-[180px] truncate">
-          {activeBoard ? activeBoard.name : isLoading ? "Loading..." : "No board"}
-        </span>
+        <span className="max-w-[180px] truncate">{triggerLabel}</span>
         <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
           <path d="M5 7l5 5 5-5z" />
         </svg>
@@ -378,4 +385,4 @@ export const BoardSwitcher = ({
       ) : null}
     </div>
   );
-};
+}

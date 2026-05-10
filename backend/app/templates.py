@@ -86,6 +86,13 @@ BOARD_TEMPLATES: dict[str, dict[str, Any]] = {
 }
 
 
+def _summarize_column(column: dict[str, Any]) -> dict[str, Any]:
+    summary: dict[str, Any] = {"id": column["id"], "title": column["title"]}
+    if "wipLimit" in column:
+        summary["wipLimit"] = column["wipLimit"]
+    return summary
+
+
 def list_templates() -> list[dict[str, Any]]:
     return [
         {
@@ -93,18 +100,7 @@ def list_templates() -> list[dict[str, Any]]:
             "name": template["name"],
             "description": template["description"],
             "default_board_name": template["default_board_name"],
-            "columns": [
-                {
-                    "id": column["id"],
-                    "title": column["title"],
-                    **(
-                        {"wipLimit": column["wipLimit"]}
-                        if "wipLimit" in column
-                        else {}
-                    ),
-                }
-                for column in template["board"]["columns"]
-            ],
+            "columns": [_summarize_column(c) for c in template["board"]["columns"]],
         }
         for template in BOARD_TEMPLATES.values()
     ]

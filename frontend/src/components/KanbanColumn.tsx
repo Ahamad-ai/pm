@@ -36,7 +36,7 @@ type KanbanColumnProps = {
   onToggleSelect?: (cardId: string) => void;
 };
 
-export const KanbanColumn = ({
+export function KanbanColumn({
   column,
   cards,
   accent,
@@ -53,7 +53,7 @@ export const KanbanColumn = ({
   selectMode,
   selectedCardIds,
   onToggleSelect,
-}: KanbanColumnProps) => {
+}: KanbanColumnProps) {
   const [showWipEditor, setShowWipEditor] = useState(false);
   const [wipDraft, setWipDraft] = useState<string>(
     column.wipLimit ? String(column.wipLimit) : ""
@@ -89,6 +89,24 @@ export const KanbanColumn = ({
     ? visibleCards.filter((card) => matchedCardIds.has(card.id)).length
     : visibleCards.length;
   const wip = wipState(column, visibleCards.length);
+
+  let countLabel: string | number;
+  if (column.wipLimit) {
+    countLabel = `${visibleCards.length}/${column.wipLimit}`;
+  } else if (matchedCardIds) {
+    countLabel = `${matchCount}/${visibleCards.length}`;
+  } else {
+    countLabel = visibleCards.length;
+  }
+
+  let wipClass: string;
+  if (wip === "exceeded") {
+    wipClass = "bg-[#fee2e2] text-[#b91c1c]";
+  } else if (wip === "near") {
+    wipClass = "bg-[var(--accent-yellow)]/15 text-[#a07000]";
+  } else {
+    wipClass = `${accent.soft} ${accent.text}`;
+  }
 
   const handleSaveWip = () => {
     const trimmed = wipDraft.trim();
@@ -155,11 +173,7 @@ export const KanbanColumn = ({
         <span
           className={clsx(
             "inline-flex h-6 min-w-[36px] shrink-0 items-center justify-center rounded-full px-2 text-[11px] font-semibold tabular-nums",
-            wip === "exceeded"
-              ? "bg-[#fee2e2] text-[#b91c1c]"
-              : wip === "near"
-              ? "bg-[var(--accent-yellow)]/15 text-[#a07000]"
-              : `${accent.soft} ${accent.text}`
+            wipClass
           )}
           aria-label={
             column.wipLimit
@@ -168,11 +182,7 @@ export const KanbanColumn = ({
           }
           data-testid={`column-count-${column.id}`}
         >
-          {column.wipLimit
-            ? `${visibleCards.length}/${column.wipLimit}`
-            : matchedCardIds
-            ? `${matchCount}/${visibleCards.length}`
-            : visibleCards.length}
+          {countLabel}
         </span>
         {canEdit ? (
           <button

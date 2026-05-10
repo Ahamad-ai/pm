@@ -27,14 +27,14 @@ const SUGGESTIONS = [
   "Summarize the board for me.",
 ];
 
-export const ChatSidebar = ({
+export function ChatSidebar({
   messages,
   isSending,
   error,
   isOpen = true,
   onToggle,
   onSend,
-}: ChatSidebarProps) => {
+}: ChatSidebarProps) {
   const [draft, setDraft] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -202,4 +202,4 @@ export const ChatSidebar = ({
       </form>
     </aside>
   );
-};
+}

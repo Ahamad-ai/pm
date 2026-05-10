@@ -13,9 +13,7 @@ def resolve_static_dir() -> Path:
     env_path = os.getenv("PM_STATIC_DIR")
     if env_path:
         return Path(env_path)
-    if FRONTEND_OUT_DIR.exists():
-        return FRONTEND_OUT_DIR
-    return DEFAULT_STATIC_DIR
+    return FRONTEND_OUT_DIR if FRONTEND_OUT_DIR.exists() else DEFAULT_STATIC_DIR
 
 
 def resolve_db_path() -> Path:

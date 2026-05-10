@@ -37,9 +37,10 @@ export default function SharePage() {
         if (!response.ok) {
           let detail = "";
           try {
-            detail = ((await response.json()) as { detail?: string })?.detail ?? "";
+            const body = (await response.json()) as { detail?: string };
+            detail = body.detail ?? "";
           } catch {
-            detail = "";
+            // ignore — fall through to default message
           }
           if (!cancelled) {
             setError(detail || "This share link isn't valid anymore.");

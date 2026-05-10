@@ -33,9 +33,16 @@ def normalize_message(user_message: str) -> str:
 
 
 def get_structured_output_schema() -> dict[str, Any]:
+    """JSON-schema for OpenRouter's structured-output mode.
+
+    Schema mirrors the full card/column shape so the model can faithfully
+    echo input fields. We avoid `strict: True` here — the free-tier model
+    doesn't reliably honor strict schemas when the input has many fields,
+    and the backend re-validates the response with Pydantic + sanitizes
+    via `_validate_board_data` anyway.
+    """
     return {
         "name": "kanban_chat_response",
-        "strict": True,
         "schema": {
             "type": "object",
             "properties": {
@@ -57,9 +64,9 @@ def get_structured_output_schema() -> dict[str, Any]:
                                                 "type": "array",
                                                 "items": {"type": "string"},
                                             },
+                                            "wipLimit": {"type": ["integer", "null"]},
                                         },
                                         "required": ["id", "title", "cardIds"],
-                                        "additionalProperties": False,
                                     },
                                 },
                                 "cards": {
@@ -70,20 +77,34 @@ def get_structured_output_schema() -> dict[str, Any]:
                                             "id": {"type": "string"},
                                             "title": {"type": "string"},
                                             "details": {"type": "string"},
+                                            "priority": {
+                                                "type": ["string", "null"],
+                                                "enum": [
+                                                    "low",
+                                                    "medium",
+                                                    "high",
+                                                    "urgent",
+                                                    None,
+                                                ],
+                                            },
+                                            "dueDate": {"type": ["string", "null"]},
+                                            "labels": {
+                                                "type": ["array", "null"],
+                                                "items": {"type": "string"},
+                                            },
+                                            "assignee": {"type": ["string", "null"]},
+                                            "archived": {"type": ["boolean", "null"]},
                                         },
                                         "required": ["id", "title", "details"],
-                                        "additionalProperties": False,
                                     },
                                 },
                             },
                             "required": ["columns", "cards"],
-                            "additionalProperties": False,
                         },
                     ]
                 },
             },
             "required": ["assistant_message", "board_update"],
-            "additionalProperties": False,
         },
     }
 
@@ -92,14 +113,11 @@ def _extract_content_text(content: Any) -> str:
     if isinstance(content, str):
         return content
     if isinstance(content, list):
-        parts: list[str] = []
-        for item in content:
-            if not isinstance(item, dict):
-                continue
-            text = item.get("text")
-            if isinstance(text, str):
-                parts.append(text)
-        return "".join(parts)
+        return "".join(
+            item["text"]
+            for item in content
+            if isinstance(item, dict) and isinstance(item.get("text"), str)
+        )
     return ""
 
 
@@ -156,7 +174,14 @@ def build_structured_messages(
             "content": (
                 "You are a helpful project management assistant. "
                 "Reply only with valid JSON matching the required schema. "
-                "If no board change is needed, set board_update to null."
+                "If no board change is needed, set board_update to null. "
+                "When you DO modify the board, preserve every existing card "
+                "field (priority, dueDate, labels, assignee, archived, etc.) "
+                "unless the user asked to change it. Only include cards in "
+                "`cards` that you are creating or modifying — unchanged cards "
+                "may be omitted. The board may have fields you don't recognise "
+                "(subtasks, comments, attachments, timeEntries, linkedCardIds). "
+                "Never echo those back; the server preserves them automatically."
             ),
         }
     ]
@@ -226,11 +251,21 @@ async def request_structured_chat(
                 )
             try:
                 return parse_structured_content(content)
-            except (json.JSONDecodeError, ValueError) as exc:
-                raise HTTPException(
-                    status_code=502,
-                    detail="OpenRouter returned invalid JSON structured output.",
-                ) from exc
+            except (json.JSONDecodeError, ValueError):
+                # The model produced text that didn't parse as JSON — usually
+                # because the free-tier model freelanced past the schema.
+                # Return its prose as `assistant_message` with no board update
+                # rather than failing the whole chat turn.
+                fallback_text = _extract_content_text(content).strip()
+                if not fallback_text:
+                    fallback_text = (
+                        "I had trouble formatting that as a board update. "
+                        "Could you rephrase the request?"
+                    )
+                return {
+                    "assistant_message": fallback_text,
+                    "board_update": None,
+                }
         except httpx.TimeoutException as exc:
             raise HTTPException(status_code=504, detail="OpenRouter request timed out.") from exc
         except httpx.HTTPError as exc:

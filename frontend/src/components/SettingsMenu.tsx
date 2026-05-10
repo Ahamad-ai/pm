@@ -16,12 +16,12 @@ type SettingsMenuProps = {
 
 type Mode = "menu" | "profile" | "password";
 
-export const SettingsMenu = ({
+export function SettingsMenu({
   username,
   displayName,
   onProfileUpdated,
   onLogout,
-}: SettingsMenuProps) => {
+}: SettingsMenuProps) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("menu");
   const [draftDisplayName, setDraftDisplayName] = useState(displayName);
@@ -261,4 +261,4 @@ export const SettingsMenu = ({
       ) : null}
     </div>
   );
-};
+}

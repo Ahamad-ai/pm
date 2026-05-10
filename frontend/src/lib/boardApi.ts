@@ -1,5 +1,5 @@
-import type { BoardData } from "@/lib/kanban";
 import { getToken } from "@/lib/auth";
+import type { BoardData } from "@/lib/kanban";
 
 type BoardResponse = {
   username: string;
@@ -137,7 +137,12 @@ export type ActivityEntry = {
   username: string;
 };
 
-const buildHeaders = (username: string): Record<string, string> => {
+export type ApiError = Error & {
+  status?: number;
+  isAuthFailure?: boolean;
+};
+
+function buildHeaders(username: string): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -148,14 +153,9 @@ const buildHeaders = (username: string): Record<string, string> => {
     headers["X-Username"] = username;
   }
   return headers;
-};
+}
 
-export type ApiError = Error & {
-  status?: number;
-  isAuthFailure?: boolean;
-};
-
-const toError = async (response: Response, fallback: string): Promise<Error> => {
+async function toError(response: Response, fallback: string): Promise<Error> {
   let detail = "";
   try {
     const payload = (await response.json()) as { detail?: string };
@@ -174,213 +174,203 @@ const toError = async (response: Response, fallback: string): Promise<Error> => 
     error.isAuthFailure = true;
   }
   return error;
+}
+
+type RequestOptions = {
+  method?: string;
+  body?: unknown;
 };
 
-export const fetchBoard = async (username: string): Promise<BoardData> => {
-  const response = await fetch("/api/board", {
-    method: "GET",
+async function request(
+  username: string,
+  path: string,
+  errorMessage: string,
+  options: RequestOptions = {}
+): Promise<Response> {
+  const init: RequestInit = {
+    method: options.method ?? "GET",
     headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Board fetch failed");
+  };
+  if (options.body !== undefined) {
+    init.body = JSON.stringify(options.body);
   }
-  const payload = (await response.json()) as BoardResponse;
-  return payload.board;
-};
+  const response = await fetch(path, init);
+  if (!response.ok) {
+    throw await toError(response, errorMessage);
+  }
+  return response;
+}
 
-export const saveBoard = async (
+async function requestJson<T>(
+  username: string,
+  path: string,
+  errorMessage: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const response = await request(username, path, errorMessage, options);
+  return (await response.json()) as T;
+}
+
+export async function fetchBoard(username: string): Promise<BoardData> {
+  const payload = await requestJson<BoardResponse>(
+    username,
+    "/api/board",
+    "Board fetch failed"
+  );
+  return payload.board;
+}
+
+export async function saveBoard(
   username: string,
   board: BoardData
-): Promise<BoardData> => {
-  const response = await fetch("/api/board", {
-    method: "PUT",
-    headers: buildHeaders(username),
-    body: JSON.stringify(board),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Board save failed");
-  }
-  const payload = (await response.json()) as BoardResponse;
+): Promise<BoardData> {
+  const payload = await requestJson<BoardResponse>(
+    username,
+    "/api/board",
+    "Board save failed",
+    { method: "PUT", body: board }
+  );
   return payload.board;
-};
+}
 
 // ---------------- Multi-board ----------------
 
-export const listBoards = async (
-  username: string
-): Promise<BoardSummary[]> => {
-  const response = await fetch("/api/boards", {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not list boards");
-  }
-  const payload = (await response.json()) as BoardListResponse;
+export async function listBoards(username: string): Promise<BoardSummary[]> {
+  const payload = await requestJson<BoardListResponse>(
+    username,
+    "/api/boards",
+    "Could not list boards"
+  );
   return payload.boards;
-};
+}
 
-export const createBoard = async (
+export async function createBoard(
   username: string,
   name: string,
   board?: BoardData
-): Promise<BoardDetail> => {
-  const response = await fetch("/api/boards", {
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(username, "/api/boards", "Could not create board", {
     method: "POST",
-    headers: buildHeaders(username),
-    body: JSON.stringify(board ? { name, board } : { name }),
+    body: board ? { name, board } : { name },
   });
-  if (!response.ok) {
-    throw await toError(response, "Could not create board");
-  }
-  return (await response.json()) as BoardDetail;
-};
+}
 
-export const fetchBoardById = async (
+export async function fetchBoardById(
   username: string,
   boardId: number
-): Promise<BoardDetail> => {
-  const response = await fetch(`/api/boards/${boardId}`, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Board fetch failed");
-  }
-  return (await response.json()) as BoardDetail;
-};
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(
+    username,
+    `/api/boards/${boardId}`,
+    "Board fetch failed"
+  );
+}
 
-export const updateBoardById = async (
+export async function updateBoardById(
   username: string,
   boardId: number,
   payload: { name?: string; board?: BoardData }
-): Promise<BoardDetail> => {
-  const response = await fetch(`/api/boards/${boardId}`, {
-    method: "PUT",
-    headers: buildHeaders(username),
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Board update failed");
-  }
-  return (await response.json()) as BoardDetail;
-};
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(
+    username,
+    `/api/boards/${boardId}`,
+    "Board update failed",
+    { method: "PUT", body: payload }
+  );
+}
 
-export const deleteBoardById = async (
+export async function deleteBoardById(
   username: string,
   boardId: number
-): Promise<void> => {
-  const response = await fetch(`/api/boards/${boardId}`, {
+): Promise<void> {
+  await request(username, `/api/boards/${boardId}`, "Board delete failed", {
     method: "DELETE",
-    headers: buildHeaders(username),
   });
-  if (!response.ok) {
-    throw await toError(response, "Board delete failed");
-  }
-};
+}
 
-export const fetchActivity = async (
+export async function fetchActivity(
   username: string,
   boardId: number
-): Promise<ActivityEntry[]> => {
-  const response = await fetch(`/api/boards/${boardId}/activity`, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Activity fetch failed");
-  }
-  const payload = (await response.json()) as { entries: ActivityEntry[] };
+): Promise<ActivityEntry[]> {
+  const payload = await requestJson<{ entries: ActivityEntry[] }>(
+    username,
+    `/api/boards/${boardId}/activity`,
+    "Activity fetch failed"
+  );
   return payload.entries;
-};
+}
 
 // ---------------- Collaborators ----------------
 
-export const listCollaborators = async (
+export async function listCollaborators(
   username: string,
   boardId: number
-): Promise<Collaborator[]> => {
-  const response = await fetch(`/api/boards/${boardId}/collaborators`, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not list collaborators");
-  }
-  const payload = (await response.json()) as { collaborators: Collaborator[] };
+): Promise<Collaborator[]> {
+  const payload = await requestJson<{ collaborators: Collaborator[] }>(
+    username,
+    `/api/boards/${boardId}/collaborators`,
+    "Could not list collaborators"
+  );
   return payload.collaborators;
-};
+}
 
-export const addCollaborator = async (
+export async function addCollaborator(
   username: string,
   boardId: number,
   collaboratorUsername: string,
   role: "viewer" | "editor"
-): Promise<Collaborator> => {
-  const response = await fetch(`/api/boards/${boardId}/collaborators`, {
-    method: "POST",
-    headers: buildHeaders(username),
-    body: JSON.stringify({ username: collaboratorUsername, role }),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not add collaborator");
-  }
-  return (await response.json()) as Collaborator;
-};
+): Promise<Collaborator> {
+  return requestJson<Collaborator>(
+    username,
+    `/api/boards/${boardId}/collaborators`,
+    "Could not add collaborator",
+    { method: "POST", body: { username: collaboratorUsername, role } }
+  );
+}
 
-export const removeCollaborator = async (
+export async function removeCollaborator(
   username: string,
   boardId: number,
   collaboratorUsername: string
-): Promise<void> => {
-  const response = await fetch(
+): Promise<void> {
+  await request(
+    username,
     `/api/boards/${boardId}/collaborators/${encodeURIComponent(collaboratorUsername)}`,
-    {
-      method: "DELETE",
-      headers: buildHeaders(username),
-    }
+    "Could not remove collaborator",
+    { method: "DELETE" }
   );
-  if (!response.ok) {
-    throw await toError(response, "Could not remove collaborator");
-  }
-};
+}
 
 // ---------------- Stats / export ----------------
 
-export const fetchBoardStats = async (
+export async function fetchBoardStats(
   username: string,
   boardId: number
-): Promise<BoardStats> => {
-  const response = await fetch(`/api/boards/${boardId}/stats`, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not load stats");
-  }
-  return (await response.json()) as BoardStats;
-};
+): Promise<BoardStats> {
+  return requestJson<BoardStats>(
+    username,
+    `/api/boards/${boardId}/stats`,
+    "Could not load stats"
+  );
+}
 
-export const buildExportUrl = (boardId: number): string =>
-  `/api/boards/${boardId}/export`;
+export function buildExportUrl(boardId: number): string {
+  return `/api/boards/${boardId}/export`;
+}
 
-export const pinBoard = async (
+export async function pinBoard(
   username: string,
   boardId: number
-): Promise<void> => {
-  const response = await fetch(`/api/boards/${boardId}/pin`, {
+): Promise<void> {
+  await request(username, `/api/boards/${boardId}/pin`, "Could not pin board", {
     method: "POST",
-    headers: buildHeaders(username),
   });
-  if (!response.ok) {
-    throw await toError(response, "Could not pin board");
-  }
-};
+}
 
-export const unpinBoard = async (
+export async function unpinBoard(
   username: string,
   boardId: number
-): Promise<void> => {
+): Promise<void> {
   const response = await fetch(`/api/boards/${boardId}/pin`, {
     method: "DELETE",
     headers: buildHeaders(username),
@@ -388,194 +378,150 @@ export const unpinBoard = async (
   if (!response.ok && response.status !== 404) {
     throw await toError(response, "Could not unpin board");
   }
-};
+}
 
-export const duplicateBoard = async (
+export async function duplicateBoard(
   username: string,
   boardId: number,
   name?: string
-): Promise<BoardDetail> => {
-  const response = await fetch(`/api/boards/${boardId}/duplicate`, {
-    method: "POST",
-    headers: buildHeaders(username),
-    body: JSON.stringify(name ? { name } : {}),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not duplicate board");
-  }
-  return (await response.json()) as BoardDetail;
-};
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(
+    username,
+    `/api/boards/${boardId}/duplicate`,
+    "Could not duplicate board",
+    { method: "POST", body: name ? { name } : {} }
+  );
+}
 
-export const importBoard = async (
+export async function importBoard(
   username: string,
   payload: { name?: string; board: BoardData }
-): Promise<BoardDetail> => {
-  const response = await fetch("/api/boards/import", {
-    method: "POST",
-    headers: buildHeaders(username),
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not import board");
-  }
-  return (await response.json()) as BoardDetail;
-};
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(
+    username,
+    "/api/boards/import",
+    "Could not import board",
+    { method: "POST", body: payload }
+  );
+}
 
-export const fetchMyTasks = async (
-  username: string
-): Promise<UserTask[]> => {
-  const response = await fetch("/api/users/me/tasks", {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not load tasks");
-  }
-  const payload = (await response.json()) as { tasks: UserTask[] };
+export async function fetchMyTasks(username: string): Promise<UserTask[]> {
+  const payload = await requestJson<{ tasks: UserTask[] }>(
+    username,
+    "/api/users/me/tasks",
+    "Could not load tasks"
+  );
   return payload.tasks;
-};
+}
 
 // ---------------- Search ----------------
 
-export const searchAll = async (
+export async function searchAll(
   username: string,
   query: string
-): Promise<SearchResult> => {
-  const response = await fetch(
+): Promise<SearchResult> {
+  return requestJson<SearchResult>(
+    username,
     `/api/search?q=${encodeURIComponent(query)}`,
-    {
-      method: "GET",
-      headers: buildHeaders(username),
-    }
+    "Search failed"
   );
-  if (!response.ok) {
-    throw await toError(response, "Search failed");
-  }
-  return (await response.json()) as SearchResult;
-};
+}
 
 // ---------------- Templates ----------------
 
-export const listTemplates = async (
+export async function listTemplates(
   username: string
-): Promise<BoardTemplate[]> => {
-  const response = await fetch("/api/templates", {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not load templates");
-  }
-  const payload = (await response.json()) as { templates: BoardTemplate[] };
+): Promise<BoardTemplate[]> {
+  const payload = await requestJson<{ templates: BoardTemplate[] }>(
+    username,
+    "/api/templates",
+    "Could not load templates"
+  );
   return payload.templates;
-};
+}
 
-export const createBoardFromTemplate = async (
+export async function createBoardFromTemplate(
   username: string,
   templateId: string,
   name?: string
-): Promise<BoardDetail> => {
-  const response = await fetch(
+): Promise<BoardDetail> {
+  return requestJson<BoardDetail>(
+    username,
     `/api/boards/from-template/${encodeURIComponent(templateId)}`,
-    {
-      method: "POST",
-      headers: buildHeaders(username),
-      body: JSON.stringify(name ? { name } : {}),
-    }
+    "Could not create board from template",
+    { method: "POST", body: name ? { name } : {} }
   );
-  if (!response.ok) {
-    throw await toError(response, "Could not create board from template");
-  }
-  return (await response.json()) as BoardDetail;
-};
+}
 
 // ---------------- Notifications ----------------
 
-export const fetchNotifications = async (
+export async function fetchNotifications(
   username: string,
   onlyUnread: boolean = false
-): Promise<{ notifications: Notification[]; unread_count: number }> => {
+): Promise<{ notifications: Notification[]; unread_count: number }> {
   const url = onlyUnread
     ? "/api/users/me/notifications?only_unread=true"
     : "/api/users/me/notifications";
-  const response = await fetch(url, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not load notifications");
-  }
-  const payload = (await response.json()) as {
-    notifications: Notification[];
-    unread_count: number;
-  };
-  return payload;
-};
+  return requestJson<{ notifications: Notification[]; unread_count: number }>(
+    username,
+    url,
+    "Could not load notifications"
+  );
+}
 
-export const markNotificationRead = async (
+export async function markNotificationRead(
   username: string,
   notificationId: number
-): Promise<number> => {
-  const response = await fetch(
+): Promise<number> {
+  const payload = await requestJson<{ unread_count: number }>(
+    username,
     `/api/users/me/notifications/${notificationId}/read`,
-    {
-      method: "POST",
-      headers: buildHeaders(username),
-    }
+    "Could not mark notification as read",
+    { method: "POST" }
   );
-  if (!response.ok) {
-    throw await toError(response, "Could not mark notification as read");
-  }
-  const payload = (await response.json()) as { unread_count: number };
   return payload.unread_count;
-};
+}
 
-export const markAllNotificationsRead = async (
+export async function markAllNotificationsRead(
   username: string
-): Promise<void> => {
-  const response = await fetch("/api/users/me/notifications/read-all", {
-    method: "POST",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not mark notifications as read");
-  }
-};
+): Promise<void> {
+  await request(
+    username,
+    "/api/users/me/notifications/read-all",
+    "Could not mark notifications as read",
+    { method: "POST" }
+  );
+}
 
 // ---------------- Public share ----------------
 
-export const getShareLink = async (
+export async function getShareLink(
   username: string,
   boardId: number
-): Promise<ShareLink> => {
-  const response = await fetch(`/api/boards/${boardId}/share`, {
-    method: "GET",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not load share link");
-  }
-  return (await response.json()) as ShareLink;
-};
+): Promise<ShareLink> {
+  return requestJson<ShareLink>(
+    username,
+    `/api/boards/${boardId}/share`,
+    "Could not load share link"
+  );
+}
 
-export const enableShareLink = async (
+export async function enableShareLink(
   username: string,
   boardId: number
-): Promise<ShareLink> => {
-  const response = await fetch(`/api/boards/${boardId}/share`, {
-    method: "POST",
-    headers: buildHeaders(username),
-  });
-  if (!response.ok) {
-    throw await toError(response, "Could not enable share link");
-  }
-  return (await response.json()) as ShareLink;
-};
+): Promise<ShareLink> {
+  return requestJson<ShareLink>(
+    username,
+    `/api/boards/${boardId}/share`,
+    "Could not enable share link",
+    { method: "POST" }
+  );
+}
 
-export const disableShareLink = async (
+export async function disableShareLink(
   username: string,
   boardId: number
-): Promise<void> => {
+): Promise<void> {
   const response = await fetch(`/api/boards/${boardId}/share`, {
     method: "DELETE",
     headers: buildHeaders(username),
@@ -583,27 +529,22 @@ export const disableShareLink = async (
   if (!response.ok && response.status !== 404) {
     throw await toError(response, "Could not disable share link");
   }
-};
+}
 
 // ---------------- Chat ----------------
 
-export const sendChat = async (
+export async function sendChat(
   username: string,
   message: string,
   conversationHistory: ChatHistoryMessage[],
   boardId?: number
-): Promise<ChatResponse> => {
-  const response = await fetch("/api/chat", {
+): Promise<ChatResponse> {
+  return requestJson<ChatResponse>(username, "/api/chat", "Chat request failed", {
     method: "POST",
-    headers: buildHeaders(username),
-    body: JSON.stringify({
+    body: {
       message,
       conversation_history: conversationHistory,
       board_id: boardId ?? null,
-    }),
+    },
   });
-  if (!response.ok) {
-    throw await toError(response, "Chat request failed");
-  }
-  return (await response.json()) as ChatResponse;
-};
+}

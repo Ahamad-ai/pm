@@ -1,12 +1,42 @@
+_COMPLEX_CARD_FIELDS = (
+    "subtasks",
+    "comments",
+    "attachments",
+    "timeEntries",
+    "linkedCardIds",
+)
+
+
+def _merge_card(current: dict, candidate: dict) -> dict:
+    """Per-field merge: candidate fields win, but anything the AI didn't
+    return survives from the current card. Complex nested fields the AI
+    isn't trusted to manage (subtasks, comments, attachments, timeEntries,
+    linkedCardIds) are always preserved from the current card."""
+    if not isinstance(current, dict):
+        return dict(candidate)
+    merged = {**current, **{k: v for k, v in candidate.items() if v is not None}}
+    for field in _COMPLEX_CARD_FIELDS:
+        if field in current:
+            merged[field] = current[field]
+        else:
+            merged.pop(field, None)
+    return merged
+
+
 def apply_board_update_patch(
     candidate_board: dict,
     current_board: dict,
 ) -> dict:
     """Merge an AI-generated board patch into the current board.
 
-    Columns and cards from the candidate are layered on top of the current
-    board.  Card IDs that reference missing card objects are dropped;
-    unmentioned columns are preserved.
+    - Cards from the candidate are merged field-by-field with the current
+      card so AI omissions don't wipe priority/dueDate/labels/assignee/etc.
+    - Sub-tasks, comments, attachments, time entries and linked-card refs
+      are *always* preserved from the current card; the AI cannot edit them
+      via chat.
+    - Card IDs that reference missing card objects are dropped.
+    - Unmentioned columns are preserved; mentioned columns get the candidate
+      title/cardIds, and `wipLimit` is preserved unless explicitly set.
     """
     current_columns = current_board.get("columns", [])
     current_cards = current_board.get("cards", {})
@@ -18,7 +48,23 @@ def apply_board_update_patch(
     if not isinstance(candidate_columns, list) or not isinstance(candidate_cards, dict):
         return current_board
 
-    merged_cards = {**current_cards, **candidate_cards}
+    merged_cards: dict = {**current_cards}
+    for card_id, candidate_card in candidate_cards.items():
+        if not isinstance(candidate_card, dict):
+            continue
+        existing = merged_cards.get(card_id)
+        if isinstance(existing, dict):
+            merged_cards[card_id] = _merge_card(existing, candidate_card)
+        else:
+            # New card — drop any AI-provided complex fields so they don't
+            # bypass the validators that normally police them.
+            cleaned = {
+                k: v
+                for k, v in candidate_card.items()
+                if k not in _COMPLEX_CARD_FIELDS
+            }
+            cleaned["id"] = card_id
+            merged_cards[card_id] = cleaned
     merged_columns = [dict(column) for column in current_columns if isinstance(column, dict)]
     index_by_id = {
         column.get("id"): idx
@@ -46,6 +92,9 @@ def apply_board_update_patch(
                 updated["title"] = patch_column["title"]
             if normalized_patch_ids is not None:
                 updated["cardIds"] = normalized_patch_ids
+            patch_wip = patch_column.get("wipLimit")
+            if isinstance(patch_wip, int):
+                updated["wipLimit"] = patch_wip
             merged_columns[index_by_id[column_id]] = updated
             continue
 
@@ -65,12 +114,11 @@ def apply_board_update_patch(
         if not isinstance(card_ids, list):
             sanitized_columns.append(column)
             continue
-        repaired_ids = []
-        for card_id in card_ids:
-            if not isinstance(card_id, str):
-                continue
-            if card_id in merged_cards:
-                repaired_ids.append(card_id)
+        repaired_ids = [
+            card_id
+            for card_id in card_ids
+            if isinstance(card_id, str) and card_id in merged_cards
+        ]
         sanitized_columns.append({**column, "cardIds": repaired_ids})
 
     return {"columns": sanitized_columns, "cards": merged_cards}

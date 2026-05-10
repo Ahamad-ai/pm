@@ -66,6 +66,5 @@ def resolve_board_for_chat(
 
     seeded_board = get_or_create_board_for_user(username, db_path)
     boards = list_boards_for_user(username, db_path)
-    if not boards:
-        return ensure_first_board_seeded(username, db_path), seeded_board
-    return int(boards[0]["id"]), seeded_board
+    resolved_id = int(boards[0]["id"]) if boards else ensure_first_board_seeded(username, db_path)
+    return resolved_id, seeded_board

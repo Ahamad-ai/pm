@@ -12,78 +12,81 @@ export type AuthResult = {
   role?: string;
 };
 
-const post = async (path: string, body: unknown): Promise<AuthResult> => {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    let detail = "";
-    try {
-      const payload = (await response.json()) as { detail?: string };
-      detail = payload.detail ?? "";
-    } catch {
-      detail = "";
-    }
-    throw new Error(detail || `Request failed (${response.status})`);
-  }
-  return (await response.json()) as AuthResult;
-};
-
-export const login = async (
-  username: string,
-  password: string
-): Promise<AuthResult> => {
-  return post("/api/login", { username, password });
-};
-
-export const registerAccount = async (
-  username: string,
-  password: string,
-  displayName?: string
-): Promise<AuthResult> => {
-  return post("/api/register", {
-    username,
-    password,
-    display_name: displayName,
-  });
-};
-
-export const persistAuth = (result: AuthResult): void => {
-  localStorage.setItem(TOKEN_STORAGE_KEY, result.token);
-  localStorage.setItem(AUTH_STORAGE_KEY, "true");
-  localStorage.setItem(USERNAME_STORAGE_KEY, result.username);
-  if (result.display_name) {
-    localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, result.display_name);
-  }
-};
-
-export const getToken = (): string | null =>
-  localStorage.getItem(TOKEN_STORAGE_KEY);
-
-export const getStoredUsername = (): string | null =>
-  localStorage.getItem(USERNAME_STORAGE_KEY);
-
-export const getStoredDisplayName = (): string | null =>
-  localStorage.getItem(DISPLAY_NAME_STORAGE_KEY);
-
-export const clearToken = (): void => {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-  localStorage.removeItem(USERNAME_STORAGE_KEY);
-  localStorage.removeItem(DISPLAY_NAME_STORAGE_KEY);
-};
-
 export type Profile = {
   username: string;
   display_name?: string | null;
   role: string;
 };
 
-const authedFetch = async (
-  path: string,
-  init?: RequestInit
-): Promise<Response> => {
+async function readDetail(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as { detail?: string };
+    return payload.detail ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function throwIfNotOk(response: Response, fallback: string): Promise<void> {
+  if (response.ok) return;
+  const detail = await readDetail(response);
+  throw new Error(detail || `${fallback} (${response.status})`);
+}
+
+async function postJson<T>(path: string, body: unknown, fallback: string): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  await throwIfNotOk(response, fallback);
+  return (await response.json()) as T;
+}
+
+export function login(username: string, password: string): Promise<AuthResult> {
+  return postJson<AuthResult>("/api/login", { username, password }, "Request failed");
+}
+
+export function registerAccount(
+  username: string,
+  password: string,
+  displayName?: string
+): Promise<AuthResult> {
+  return postJson<AuthResult>(
+    "/api/register",
+    { username, password, display_name: displayName },
+    "Request failed"
+  );
+}
+
+export function persistAuth(result: AuthResult): void {
+  localStorage.setItem(TOKEN_STORAGE_KEY, result.token);
+  localStorage.setItem(AUTH_STORAGE_KEY, "true");
+  localStorage.setItem(USERNAME_STORAGE_KEY, result.username);
+  if (result.display_name) {
+    localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, result.display_name);
+  }
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+export function getStoredUsername(): string | null {
+  return localStorage.getItem(USERNAME_STORAGE_KEY);
+}
+
+export function getStoredDisplayName(): string | null {
+  return localStorage.getItem(DISPLAY_NAME_STORAGE_KEY);
+}
+
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USERNAME_STORAGE_KEY);
+  localStorage.removeItem(DISPLAY_NAME_STORAGE_KEY);
+}
+
+async function authedFetch(path: string, init?: RequestInit): Promise<Response> {
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -93,40 +96,27 @@ const authedFetch = async (
     headers["Authorization"] = `Bearer ${token}`;
   }
   return fetch(path, { ...init, headers });
-};
+}
 
-const readDetail = async (response: Response): Promise<string> => {
-  try {
-    const payload = (await response.json()) as { detail?: string };
-    return payload.detail ?? "";
-  } catch {
-    return "";
-  }
-};
-
-export const fetchProfile = async (): Promise<Profile> => {
+export async function fetchProfile(): Promise<Profile> {
   const response = await authedFetch("/api/users/me");
-  if (!response.ok) {
-    throw new Error((await readDetail(response)) || `Profile fetch failed (${response.status})`);
-  }
+  await throwIfNotOk(response, "Profile fetch failed");
   return (await response.json()) as Profile;
-};
+}
 
-export const updateProfile = async (displayName: string): Promise<Profile> => {
+export async function updateProfile(displayName: string): Promise<Profile> {
   const response = await authedFetch("/api/users/me", {
     method: "PUT",
     body: JSON.stringify({ display_name: displayName }),
   });
-  if (!response.ok) {
-    throw new Error((await readDetail(response)) || `Profile update failed (${response.status})`);
-  }
+  await throwIfNotOk(response, "Profile update failed");
   return (await response.json()) as Profile;
-};
+}
 
-export const changePassword = async (
+export async function changePassword(
   currentPassword: string,
   newPassword: string
-): Promise<AuthResult> => {
+): Promise<AuthResult> {
   const response = await authedFetch("/api/users/me/password", {
     method: "POST",
     body: JSON.stringify({
@@ -134,8 +124,6 @@ export const changePassword = async (
       new_password: newPassword,
     }),
   });
-  if (!response.ok) {
-    throw new Error((await readDetail(response)) || `Password change failed (${response.status})`);
-  }
+  await throwIfNotOk(response, "Password change failed");
   return (await response.json()) as AuthResult;
-};
+}

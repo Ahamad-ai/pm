@@ -21,10 +21,7 @@ DEMO_PASSWORD = "password"
 
 
 def _get_secret_key() -> str:
-    key = os.getenv("PM_JWT_SECRET", "").strip()
-    if not key:
-        key = "pm-mvp-dev-secret-not-for-production"
-    return key
+    return os.getenv("PM_JWT_SECRET", "").strip() or "pm-mvp-dev-secret-not-for-production"
 
 
 def create_token(username: str) -> str:
@@ -64,6 +61,15 @@ def _ensure_demo_user(db_path: Path) -> None:
         pass
 
 
+def _build_auth_response(user: dict) -> dict:
+    return {
+        "token": create_token(user["username"]),
+        "username": user["username"],
+        "display_name": user.get("display_name") or user["username"],
+        "role": user.get("role") or "member",
+    }
+
+
 def authenticate(username: str, password: str, db_path: Path) -> dict:
     cleaned_username = username.strip() if isinstance(username, str) else ""
     cleaned_password = password if isinstance(password, str) else ""
@@ -76,13 +82,7 @@ def authenticate(username: str, password: str, db_path: Path) -> dict:
     if user is None or not verify_password(cleaned_password, user.get("password_hash")):
         raise HTTPException(status_code=401, detail="Invalid credentials.")
 
-    token = create_token(user["username"])
-    return {
-        "token": token,
-        "username": user["username"],
-        "display_name": user.get("display_name") or user["username"],
-        "role": user.get("role") or "member",
-    }
+    return _build_auth_response(user)
 
 
 def register_user(
@@ -111,10 +111,4 @@ def register_user(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    token = create_token(user["username"])
-    return {
-        "token": token,
-        "username": user["username"],
-        "display_name": user.get("display_name") or user["username"],
-        "role": user.get("role") or "member",
-    }
+    return _build_auth_response(user)

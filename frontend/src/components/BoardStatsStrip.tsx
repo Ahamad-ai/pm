@@ -10,38 +10,43 @@ type BoardStatsStripProps = {
   refreshKey?: number;
 };
 
-const Stat = ({
-  label,
-  value,
-  tone,
-}: {
+type StatTone = "default" | "danger" | "muted";
+
+type StatProps = {
   label: string;
   value: string | number;
-  tone?: "default" | "danger" | "muted";
-}) => {
-  const toneClass =
-    tone === "danger"
-      ? "text-[#b91c1c]"
-      : tone === "muted"
-      ? "text-[var(--gray-text)]"
-      : "text-[var(--navy-dark)]";
+  tone?: StatTone;
+};
+
+function toneClass(tone: StatTone): string {
+  switch (tone) {
+    case "danger":
+      return "text-[#b91c1c]";
+    case "muted":
+      return "text-[var(--gray-text)]";
+    default:
+      return "text-[var(--navy-dark)]";
+  }
+}
+
+function Stat({ label, value, tone = "default" }: StatProps) {
   return (
     <div className="flex flex-col">
       <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--gray-text)]">
         {label}
       </span>
-      <span className={`font-display text-lg font-semibold ${toneClass}`}>
+      <span className={`font-display text-lg font-semibold ${toneClass(tone)}`}>
         {value}
       </span>
     </div>
   );
-};
+}
 
-export const BoardStatsStrip = ({
+export function BoardStatsStrip({
   username,
   boardId,
   refreshKey,
-}: BoardStatsStripProps) => {
+}: BoardStatsStripProps) {
   const [stats, setStats] = useState<BoardStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,11 +77,7 @@ export const BoardStatsStrip = ({
     };
   }, [username, boardId, refreshKey]);
 
-  if (boardId === null || error) {
-    return null;
-  }
-
-  if (!stats) {
+  if (boardId === null || error || !stats) {
     return null;
   }
 
@@ -135,4 +136,4 @@ export const BoardStatsStrip = ({
       ) : null}
     </section>
   );
-};
+}

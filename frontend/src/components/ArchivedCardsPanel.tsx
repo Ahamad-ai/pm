@@ -11,20 +11,21 @@ type ArchivedCardsPanelProps = {
   onDelete: (cardId: string) => void;
 };
 
-const findCardColumn = (
+function findCardColumn(
   board: BoardData,
   cardId: string
-): string | undefined =>
-  board.columns.find((column) => column.cardIds.includes(cardId))?.title;
+): string | undefined {
+  return board.columns.find((column) => column.cardIds.includes(cardId))?.title;
+}
 
-export const ArchivedCardsPanel = ({
+export function ArchivedCardsPanel({
   board,
   isOpen,
   canEdit,
   onClose,
   onRestore,
   onDelete,
-}: ArchivedCardsPanelProps) => {
+}: ArchivedCardsPanelProps) {
   if (!isOpen) {
     return null;
   }
@@ -96,4 +97,4 @@ export const ArchivedCardsPanel = ({
       )}
     </aside>
   );
-};
+}

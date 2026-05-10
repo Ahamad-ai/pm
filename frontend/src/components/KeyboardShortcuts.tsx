@@ -13,7 +13,7 @@ export type ShortcutHandlers = {
   onShowArchive?: () => void;
 };
 
-const isTypingTarget = (target: EventTarget | null): boolean => {
+function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
   return (
@@ -22,9 +22,9 @@ const isTypingTarget = (target: EventTarget | null): boolean => {
     tag === "SELECT" ||
     target.isContentEditable
   );
-};
+}
 
-export const useKeyboardShortcuts = (handlers: ShortcutHandlers): void => {
+export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
   const {
     onShowHelp,
     onFocusSearch,
@@ -106,7 +106,7 @@ export const useKeyboardShortcuts = (handlers: ShortcutHandlers): void => {
     onShowActivity,
     onShowArchive,
   ]);
-};
+}
 
 const SHORTCUT_LIST: { keys: string; description: string }[] = [
   { keys: "?", description: "Show this help" },
@@ -125,10 +125,10 @@ type KeyboardShortcutsHelpProps = {
   onClose: () => void;
 };
 
-export const KeyboardShortcutsHelp = ({
+export function KeyboardShortcutsHelp({
   isOpen,
   onClose,
-}: KeyboardShortcutsHelpProps) => {
+}: KeyboardShortcutsHelpProps) {
   useEffect(() => {
     if (!isOpen) return;
     const handler = (event: KeyboardEvent) => {
@@ -202,13 +202,13 @@ export const KeyboardShortcutsHelp = ({
       </div>
     </div>
   );
-};
+}
 
-export const useShortcutsOpenState = () => {
+export function useShortcutsOpenState() {
   const [open, setOpen] = useState(false);
   return {
     open,
     show: () => setOpen(true),
     hide: () => setOpen(false),
   };
-};
+}
